@@ -239,3 +239,12 @@ docs/
 - Blacklist decrees must be transcribed by hand (small but must be cited).
 - The Fund site may change structure; cached raw pages make the build reproducible regardless.
 - Treatment covers only ~23 % of Fund money (municipality-specific projects). The README must say that the estimate concerns *local* projects, not the Fund as a whole.
+
+### Implementation notes (2026-10-29)
+
+Deviations from this design, decided during the build (details in the plan ledger and `docs/manual_review.md`):
+- Indigenous-land polygons come from INPE's PRODES dashboard; FUNAI's download returns HTTP 403.
+- The priority list for 2008–2022 comes from Seixas (Zenodo 8412144). 2023–2026 is carried forward from 2022 because the 2023/2024 annexes are paywalled.
+- Not available or skipped: PRODES cloud/unobserved area per municipality, weather controls (owner's decision), MapBiomas robustness, heterogeneity by project axis, microregion clustering (state × year is used instead).
+- The cattle price index uses FRED's global beef price, which only starts in 2010, so it enters robustness checks only.
+- Figures and results are committed to `figures/` and `results/` (not `output/`), so they show on GitHub.
