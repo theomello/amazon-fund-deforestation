@@ -122,6 +122,60 @@ fig_restart <- function(models) {
   save_fig(p, "04_restart_event_study", height = 4.6)
 }
 
+# The headline in raw data: deforestation of three groups, each relative to its own
+# 2019-2022 level (sums of km², sample municipalities).
+fig_trajectories <- function(panel) {
+  uniao <- "Uniao-com-Municipios-pela-Reducao-de-Desmatamento-e-Incendios-Florestais"
+  links <- readr::read_csv("data/derived/fund_links.csv", col_types = "ccd")
+  groups <- c("União com Municípios (signed Sep 2025)", "Other municipalities with local projects", "No local project")
+  colors <- setNames(c("#2a78d6", "#eb6834", "#1baf7a"), groups)
+  d <- panel[panel$in_sample, ] |>
+    dplyr::mutate(group = dplyr::case_when(cd_mun %in% links$cd_mun[links$slug == uniao] ~ groups[1],
+                                           !is.na(first_treat_year) ~ groups[2], TRUE ~ groups[3])) |>
+    dplyr::summarise(km2 = sum(defor_km2), n = dplyr::n_distinct(cd_mun), .by = c(group, year)) |>
+    dplyr::mutate(index = 100 * km2 / mean(km2[year %in% 2019:2022]), .by = group)
+  n <- dplyr::distinct(d, group, n)
+  legend <- setNames(paste0(n$group, " (", n$n, ")"), n$group)[groups]
+  d <- dplyr::mutate(d, group = factor(legend[group], legend))
+  colors <- setNames(colors, legend)
+  labels <- dplyr::filter(d, year == max(year)) |> dplyr::mutate(label = round(index))
+  p <- ggplot2::ggplot(d, ggplot2::aes(year, index, colour = group)) +
+    ggplot2::geom_hline(yintercept = 100, colour = GRID, linewidth = 0.5) +
+    policy_lines() +
+    ggplot2::geom_line(linewidth = 0.8) + ggplot2::geom_point(size = 1.3) +
+    ggplot2::geom_text(data = labels, ggplot2::aes(label = label), hjust = 0, nudge_x = 0.35, size = 3.2, show.legend = FALSE) +
+    ggplot2::scale_colour_manual(values = colors, name = NULL) +
+    ggplot2::scale_x_continuous(expand = ggplot2::expansion(add = c(0.5, 2.2))) +
+    ggplot2::guides(colour = ggplot2::guide_legend(ncol = 1)) +
+    ggplot2::labs(title = "Deforestation by group, relative to each group's 2019–2022 level",
+                  subtitle = "Index, 2019–2022 average = 100; sum of PRODES deforestation in each group (number of municipalities)",
+                  x = NULL, y = NULL) +
+    theme_report()
+  save_fig(p, "08_raw_trajectories", height = 4.8)
+}
+
+# Targeting: municipalities with more deforestation before most projects began got more local money.
+fig_targeting <- function(panel) {
+  d <- panel[panel$in_sample, ] |>
+    dplyr::summarise(baseline = mean(defor_km2[year %in% 2008:2012]), money = sum(money),
+                     priority = any(priority[year <= 2022] == 1), .by = cd_mun) |>
+    dplyr::mutate(priority = factor(ifelse(priority, "On the priority blacklist (2008–2022)", "Not on the blacklist"),
+                                    c("On the priority blacklist (2008–2022)", "Not on the blacklist")))
+  funded <- dplyr::filter(d, money > 0.01)
+  p <- ggplot2::ggplot(funded, ggplot2::aes(baseline, money)) +
+    ggplot2::geom_point(ggplot2::aes(colour = priority), size = 2, alpha = 0.8) +
+    ggplot2::geom_smooth(method = "lm", formula = y ~ x, colour = INK, linewidth = 0.6, se = TRUE, fill = GRID) +
+    ggplot2::scale_x_log10(breaks = c(0.01, 0.1, 1, 10, 100), labels = c("0.01", "0.1", "1", "10", "100")) +
+    ggplot2::scale_y_log10(labels = scales::label_number(accuracy = 0.1)) +
+    ggplot2::scale_colour_manual(values = c("#2a78d6", "#a3a29c"), name = NULL) +
+    ggplot2::labs(title = "Local Fund money went where deforestation already was",
+                  subtitle = sprintf("Each dot is a municipality with local Fund money (%d of %d in the sample); log scales",
+                                     nrow(funded), nrow(d)),
+                  x = "Average yearly deforestation 2008–2012 (km²)", y = "Local Fund money 2010–2026 (R$ million, 2025 prices)") +
+    theme_report()
+  save_fig(p, "09_money_followed_deforestation", height = 5)
+}
+
 fig_staggered <- function(staggered) {
   d <- staggered$dynamic
   e <- tibble::tibble(e = d$egt, pct = pct_effect(d$att.egt), lo = pct_effect(d$att.egt - 1.96 * d$se.egt),
@@ -168,6 +222,8 @@ report_all <- function(panel, models) {
   fig_overview(panel)
   fig_map(panel)
   fig_restart(models)
+  fig_trajectories(panel)
+  fig_targeting(panel)
   fig_staggered(models$staggered)
   fig_event(es_frame(models$freeze), 2018L, "The 2019 freeze: no rise where Fund money dried up",
             "Effect of R$ 1 million/year of lost local Fund money, by year (relative to 2018; 95% CI)", "06_freeze_event_study")

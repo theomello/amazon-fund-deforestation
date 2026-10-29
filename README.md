@@ -12,7 +12,11 @@ This started as my seminar paper in the second semester of my economics bachelor
 
 **After the 2023 restart, deforestation fell in municipalities that contracted more new Fund money.** Each R$ 1 million contracted since 2023 is associated with about **5 % less deforestation in 2025 and 6 % in 2026**, relative to 2022 (t ≈ −4 for both; 2024: −1 %, not significant). The comparison is within the same state and year, and it controls for each municipality's blacklist status by year, so it holds fixed everything that changed for the whole Amazon, a whole state or the priority municipalities at the same time.
 
-**The big caveat is timing.** The decline comes entirely from contracts signed **from August 2024 on**, mostly the R$ 150 million *União com Municípios* programme, which explicitly targets priority municipalities. Those contracts were signed *during* the years in which the decline is measured, so the money may have followed falling deforestation rather than caused it. Counting only contracts signed before August 2024 (orange in the figure), the effect disappears (+8 % in 2025, +9 % in 2026, not significant). The pre-2022 coefficients are also all negative (2015 and 2017 individually significant), so exposed municipalities were already on a rising path before the restart. Treat this as the most interesting pattern in the data, not as proof. The 2027 PRODES data will show whether the União municipalities keep diverging.
+**The big caveat is timing.** The decline comes entirely from contracts signed **from August 2024 on**, mostly the R$ 150 million *União com Municípios* programme, which explicitly targets priority municipalities and was signed only in September 2025. Those contracts were signed *during or after* the years in which the decline is measured, so the money may have followed falling deforestation rather than caused it. Counting only contracts signed before August 2024 (orange in the figure), the effect disappears (+8 % in 2025, +9 % in 2026, not significant). The pre-2022 coefficients are also all negative (2015 and 2017 individually significant), so exposed municipalities were already on a rising path before the restart. Treat this as the most interesting pattern in the data, not as proof. The 2027 PRODES data will show whether the União municipalities keep diverging.
+
+The same pattern is visible without any model. União municipalities had deforestation peaks above the other groups in 2021–2022, and they were already falling faster from 2023, two years before their contract was signed:
+
+![Deforestation by group](figures/08_raw_trajectories.png)
 
 ### The rest of the picture
 
@@ -34,6 +38,10 @@ Taken together: local Fund money was **not** allocated at random. It followed de
 Only about **23 % of contracted Fund support** (19 % of the money disbursed so far) went to projects that name the municipalities or indigenous lands where they work. The estimates above concern that local money. State programmes (30 % of contracted support) and biome-wide or federal programmes (46 %, e.g. IBAMA enforcement and satellite monitoring) can't be tied to municipalities. They're absorbed by the state × year fixed effects.
 
 ![Map of local Fund money](figures/03_map_money.png)
+
+Local money was not spread evenly: municipalities that were already clearing more forest in 2008–2012 received more of it (correlation 0.41 on log scales across the 230 municipalities with local money). Most of the biggest recipients were on the federal priority blacklist. This targeting is why naive comparisons find a positive association between Fund money and deforestation.
+
+![Money followed deforestation](figures/09_money_followed_deforestation.png)
 
 ## Then and now
 
