@@ -9,3 +9,4 @@ REFRESH <- FALSE
 prodes <- build_deforestation(REFRESH)
 fund <- build_fund(REFRESH)
 coverage <- build_coverage()
+panel <- build_panel()

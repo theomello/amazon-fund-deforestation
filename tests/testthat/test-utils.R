@@ -17,6 +17,22 @@ test_that("cache_download does not hit the network when cached", {
   expect_equal(cache_download("http://invalid.invalid/x", f), f)
 })
 
+test_that("a failed download leaves no file that would later count as cached", {
+  path <- file.path(tempfile(), "x.csv")
+  expect_error(cache_download("http://invalid.invalid/x", path))
+  expect_false(file.exists(path))
+})
+
+test_that("an iCloud placeholder counts as cached and is materialized instead of re-downloaded", {
+  dir <- tempfile(); dir.create(dir)
+  path <- file.path(dir, "big.csv")
+  file.create(file.path(dir, ".big.csv.icloud"))
+  calls <- character()
+  fake_brctl <- function(p) { calls <<- c(calls, p); writeLines("x", p) }
+  expect_equal(cache_download("http://invalid.invalid/x", path, materialize = fake_brctl), path)
+  expect_equal(calls, path)
+})
+
 test_that("deflate_to_2025 scales by index ratio", {
   ipca <- tibble::tibble(year = c(2020L, 2025L), index = c(100, 150))
   expect_equal(deflate_to_2025(10, 2020L, ipca), 15)

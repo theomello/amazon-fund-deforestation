@@ -68,6 +68,8 @@ match_indigenous_lands <- function(projects, tis, mun_geo) {
 # IBGE municipal polygons for the Legal Amazon, in an equal-area projection (SIRGAS 2000 Polyconic).
 get_ibge_mun <- function(refresh = FALSE) {
   path <- "data/raw/ibge/municipalities_2022.gpkg"
+  if (!refresh && !file.exists(path) && file.exists(file.path(dirname(path), paste0(".", basename(path), ".icloud"))))
+    icloud_download(path)
   if (refresh || !file.exists(path)) {
     dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
     m <- geobr::read_municipality(code_muni = "all", year = 2022, simplified = TRUE, showProgress = FALSE)
@@ -112,7 +114,7 @@ apply_overrides <- function(links, projects, overrides) {
   list(links = links, projects = projects)
 }
 
-build_coverage <- function(overrides = TRUE) {
+build_coverage <- function(overrides = TRUE, write = TRUE) {
   projects <- readr::read_csv("data/derived/fund_projects.csv", show_col_types = FALSE)
   munis <- dplyr::transmute(prodes_municipalities("data/raw/prodes/prodes_legal_amazon_loinames.json"),
                             cd_mun, name = prodes_name, uf)
@@ -129,7 +131,9 @@ build_coverage <- function(overrides = TRUE) {
   links <- dplyr::filter(links, slug %in% projects$slug[projects$coverage_type == "municipalities"]) |>
     dplyr::mutate(weight = 1) |>
     dplyr::bind_rows(match_indigenous_lands(ti_projects, read_prodes_tis(), get_ibge_mun()))
-  readr::write_csv(dplyr::select(projects, slug, coverage_type), "data/derived/fund_coverage.csv")
-  readr::write_csv(links, "data/derived/fund_links.csv")
+  if (write) {
+    readr::write_csv(dplyr::select(projects, slug, coverage_type), "data/derived/fund_coverage.csv")
+    readr::write_csv(links, "data/derived/fund_links.csv")
+  }
   list(projects = projects, links = links)
 }

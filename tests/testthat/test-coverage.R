@@ -82,7 +82,7 @@ test_that("overrides add, remove and retype", {
 
 test_that("coverage shares match the exploration within 3 points", {
   skip_if_not(has_raw("data/raw/fundo_amazonia/pages/APL-Babacu.html"))
-  cov <- in_repo(build_coverage(overrides = FALSE))
+  cov <- in_repo(build_coverage(overrides = FALSE, write = FALSE))
   s <- dplyr::summarise(cov$projects, v = sum(valor_apoio, na.rm = TRUE), .by = coverage_type)
   share <- setNames(s$v / sum(s$v), s$coverage_type)
   expect_equal(unname(share["municipalities"]), 0.23, tolerance = 0.03, scale = 1)
