@@ -1,1 +1,26 @@
 slug,action,cd_mun,coverage_type,note,source_url
+Agroecologia-em-Rede,add,1304401,,"Listed as ""Uricurituba"" (typo on the project page)",https://www.fundoamazonia.gov.br/pt/projeto/Agroecologia-em-Rede/
+Amazonia-Agroecologica,add,1506500,,"Listed as ""Santa Isabel"" (official spelling: Santa Izabel do Pará)",https://www.fundoamazonia.gov.br/pt/projeto/Amazonia-Agroecologica/
+Amazonia-Agroecologica,add,5106109,,"Listed as ""Nossa Senhora Livramento""",https://www.fundoamazonia.gov.br/pt/projeto/Amazonia-Agroecologica/
+Assentamentos-Sustentaveis-na-Amazonia,add,1507805,,"Listed as ""Senador José Profírio"" (typo)",https://www.fundoamazonia.gov.br/pt/projeto/Assentamentos-Sustentaveis-na-Amazonia/
+Bem-Viver-Sustentavel,add,1600279,,"Listed as ""Laranjal do Jari/AP""",https://www.fundoamazonia.gov.br/pt/projeto/Bem-Viver-Sustentavel/
+Plantar-Rondonia,add,1100502,,"Listed as ""Novo Horizonte""",https://www.fundoamazonia.gov.br/pt/projeto/Plantar-Rondonia/
+Plantar-Rondonia,add,1100155,,"Listed as ""Ouro Preto""",https://www.fundoamazonia.gov.br/pt/projeto/Plantar-Rondonia/
+Quintais-Amazonicos,add,1100130,,"Listed as ""Machadinho do Oeste""",https://www.fundoamazonia.gov.br/pt/projeto/Quintais-Amazonicos/
+Quintais-Amazonicos-II,add,1100155,,"Listed as ""Ouro Preto""",https://www.fundoamazonia.gov.br/pt/projeto/Quintais-Amazonicos-II/
+Redes-de-Vidas-nos-Babacuais,add,1720309,,"Listed without ""do Tocantins""",https://www.fundoamazonia.gov.br/pt/projeto/Redes-de-Vidas-nos-Babacuais/
+Redes-de-Vidas-nos-Babacuais,add,1703800,,"Listed without ""do Tocantins""",https://www.fundoamazonia.gov.br/pt/projeto/Redes-de-Vidas-nos-Babacuais/
+Redes-de-Vidas-nos-Babacuais,add,1702901,,"Listed without ""do Tocantins""",https://www.fundoamazonia.gov.br/pt/projeto/Redes-de-Vidas-nos-Babacuais/
+Redes-de-Vidas-nos-Babacuais,add,1720804,,"Listed without ""do Tocantins""",https://www.fundoamazonia.gov.br/pt/projeto/Redes-de-Vidas-nos-Babacuais/
+Redes-de-Vidas-nos-Babacuais,add,1720200,,"Listed without ""do Tocantins""",https://www.fundoamazonia.gov.br/pt/projeto/Redes-de-Vidas-nos-Babacuais/
+Territorio-e-Saude-Olhares-e-Estrategias-Guarani-e-Timbira,add,2105989,,"Listed as ""Lageado Novo""",https://www.fundoamazonia.gov.br/pt/projeto/Territorio-e-Saude-Olhares-e-Estrategias-Guarani-e-Timbira/
+Floresta-Ativa-Tapajos,remove,1504703,,"Moju I e II is a settlement project, not the municipality",https://www.fundoamazonia.gov.br/pt/projeto/Floresta-Ativa-Tapajos/
+Gestao-Territorial-Indigena-no-Sul-do-Amazonas,set_type,,indigenous_lands,"Names only indigenous lands; ""Boca do Acre""/""Ipixuna"" matched the land names, not the municipalities",https://www.fundoamazonia.gov.br/pt/projeto/Gestao-Territorial-Indigena-no-Sul-do-Amazonas/
+Protecao-Florestal-Tocantins,set_type,,state,State environmental police; Araguaína is only the battalion's base,https://www.fundoamazonia.gov.br/pt/projeto/Protecao-Florestal-Tocantins/
+Rondonia-Mais-Verde,set_type,,state,"State fire brigade; named towns are operational bases, not target areas",https://www.fundoamazonia.gov.br/pt/projeto/Rondonia-Mais-Verde/
+Amazonia-Socioambiental,set_type,,state,"Multi-state regions (Xingu, Terra do Meio, Rio Negro); lands only partly identifiable",https://www.fundoamazonia.gov.br/pt/projeto/Amazonia-Socioambiental/
+Amazonia-Agroecologica-II,set_type,,state,"41 municipalities in Pará and 16 in Mato Grosso, not named",https://www.fundoamazonia.gov.br/pt/projeto/Amazonia-Agroecologica-II/
+Experiencias-Indigenas-de-Gestao-Territorial-e-Ambiental-no-Acre,set_type,,state,"Eight indigenous lands in Acre, not named",https://www.fundoamazonia.gov.br/pt/projeto/Experiencias-Indigenas-de-Gestao-Territorial-e-Ambiental-no-Acre/
+Fortalecimento-da-Gestao-Territorial-e-Ambiental-de-Terras-Indigenas-na-Amazonia,set_type,,state,"Six indigenous lands in Amapá and Pará, not named",https://www.fundoamazonia.gov.br/pt/projeto/Fortalecimento-da-Gestao-Territorial-e-Ambiental-de-Terras-Indigenas-na-Amazonia/
+Gestao-das-Terras-Indigenas-das-Bacias-do-Rio-Negro-e-Xingu,set_type,,state,"Nine indigenous lands in MT, RR and AM, not named",https://www.fundoamazonia.gov.br/pt/projeto/Gestao-das-Terras-Indigenas-das-Bacias-do-Rio-Negro-e-Xingu/
+Programa-Paz-no-Campo-Regularizacao-Fundiaria,add,2104651,,"Listed as ""Governador Newton Belo"" (official spelling: Bello)",https://www.fundoamazonia.gov.br/pt/projeto/Programa-Paz-no-Campo-Regularizacao-Fundiaria/

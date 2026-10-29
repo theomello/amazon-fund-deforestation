@@ -40,8 +40,33 @@ test_that("a shorter name inside a longer matched name is dropped", {
   expect_equal(links("Município de Novo Aripuanã", "Amazonas"), "1303205")
 })
 
+test_that("a shorter name listed on its own is kept next to a longer one", {
+  m <- dplyr::bind_rows(munis, tibble::tribble(~cd_mun, ~name, ~uf,
+                                               "2104800", "Grajaú", "MA",
+                                               "2105351", "Itaipava do Grajaú", "MA"))
+  l <- match_municipalities(project("Maranhão: Grajaú, Itaipava do Grajaú e Bacabal", "Maranhão"), m)
+  expect_setequal(l$cd_mun, c("2104800", "2105351", "2101202"))
+})
+
 test_that("duplicate municipality names resolve by state", {
   expect_equal(links("Município de Presidente Médici", "Rondônia"), "1100254")
+})
+
+test_that("municipalities whose names start with Rio or Alto still match", {
+  m <- dplyr::bind_rows(munis, tibble::tribble(~cd_mun, ~name, ~uf,
+                                               "1303569", "Rio Preto da Eva", "AM",
+                                               "1100403", "Alto Paraíso", "RO"))
+  l <- match_municipalities(project("Manaus, Rio Preto da Eva e o Rio Juruá; Alto Paraíso (RO)", "Amazonas"), m)
+  expect_setequal(l$cd_mun, c("1303569", "1100403"))
+})
+
+test_that("indigenous-land money is weighted by the land's overlap with each municipality", {
+  sq <- function(x0, x1) sf::st_polygon(list(rbind(c(x0, 0), c(x1, 0), c(x1, 1), c(x0, 1), c(x0, 0))))
+  mun_geo <- sf::st_sf(cd_mun = c("A", "B"), geometry = sf::st_sfc(sq(0, 3), sq(3, 6), crs = 5880))
+  tis <- sf::st_sf(name = c("Kayapó", "Baú"), geometry = sf::st_sfc(sq(1.5, 3.5), sq(10, 11), crs = 5880))
+  w <- match_indigenous_lands(tibble::tibble(slug = "p", abrangencia = "Terra Indígena Kayapó"), tis, mun_geo)
+  expect_equal(w$weight[w$cd_mun == "A"], 0.75)
+  expect_equal(w$weight[w$cd_mun == "B"], 0.25)
 })
 
 test_that("overrides add, remove and retype", {
