@@ -33,6 +33,10 @@ Raw IBGE spreadsheets and the literature PDFs used during the project are not in
 
 Requires R (tested with 4.5) with `tidyverse`, `readxl`, `foreign`, `plm`, `sandwich`, `lmtest`, `fastDummies`, `writexl`, `rio`, `geobr`, `sf`, `crul`, `microbenchmark`, `tikzDevice`, `texreg` and `xtable`, plus the `en_US.UTF-8` locale.
 
+**RStudio:** open `amazon-fund-deforestation.Rproj` (this sets the working directory to the repo root), then open `code/analysis.R` and click *Source*. A full run takes about 30 seconds and prints a lot of diagnostic output.
+
+**Terminal:**
+
 ```sh
 Rscript code/analysis.R          # run from the repo root; regenerates the TikZ figures in report/
 cd report && latexmk -pdf "The Amazon Fund.tex"

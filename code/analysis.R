@@ -1,7 +1,12 @@
-# Run from the repository root: Rscript code/analysis.R  (data in data/, tikz output to report/)
+# Open amazon-fund-deforestation.Rproj in RStudio (or run `Rscript code/analysis.R` from the repo root).
 # The hard-coded Gemeinde_id values below come from as.numeric(factor(Gemeinde)), so they depend on
 # the alphabetical sort order of the municipality names. Pin it so the IDs are the same everywhere.
 if (Sys.setlocale("LC_COLLATE", "en_US.UTF-8") == "") stop("Locale en_US.UTF-8 is required (see README)")
+# tikzDevice needs LaTeX; GUI apps such as RStudio may not have the MacTeX folder on PATH
+if (Sys.which("pdflatex") == "" && dir.exists("/Library/TeX/texbin")) {
+  Sys.setenv(PATH = paste(Sys.getenv("PATH"), "/Library/TeX/texbin", sep = .Platform$path.sep))
+}
+if (!dir.exists("data")) stop("Working directory must be the repository root (open the .Rproj file)")
 library(readr)
 library(readxl)
 library(foreign)
