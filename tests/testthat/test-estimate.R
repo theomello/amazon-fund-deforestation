@@ -33,6 +33,13 @@ test_that("exposure event studies control for baseline blacklist status by year"
   expect_true(any(grepl("priority_base", names(coef(m)))))
 })
 
+test_that("staggered DiD results are identical across runs (bootstrap is seeded)", {
+  sim <- simulate_panel()
+  a <- est_staggered(sim)$dynamic$se.egt
+  b <- est_staggered(sim)$dynamic$se.egt
+  expect_identical(a, b)
+})
+
 test_that("pct_effect converts a log-point coefficient into percent", {
   expect_equal(pct_effect(log(0.9)), -10)
 })

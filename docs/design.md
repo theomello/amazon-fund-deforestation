@@ -1,7 +1,7 @@
 # Amazon Fund and Deforestation — rebuild design (phases 1 and 2)
 
 Date: 2026-10-29
-Status: draft for approval
+Status: approved and implemented (see "Implementation notes" at the end)
 
 ## 1. Intent
 

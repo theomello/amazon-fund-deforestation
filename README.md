@@ -42,7 +42,7 @@ Only about **23 % of contracted Fund support** (19 % of the money disbursed so f
 | Data | Spreadsheets copied by hand from the Fund's website, PRODES export 2008–2020 | Everything downloaded by script: all 156 project pages with 644 dated disbursements (they sum exactly to the Fund's published R$ 2,926 million), PRODES through 2026 |
 | Treatment | "Has a project": binary, no intensity | R$ per municipality per year (2025 prices), plus freeze and restart exposure |
 | Method | Two-way fixed effects (`plm`), plain staggered DiD | `fixest` with state × year fixed effects, Callaway–Sant'Anna for staggered adoption, event studies around the freeze and restart |
-| Code | One 1,800-line exploratory script | Small tested functions (91 unit tests), one entry point, about 40 seconds end to end |
+| Code | One 1,800-line exploratory script | Small tested functions (92 unit tests), one entry point, about 40 seconds end to end |
 
 The 2021 version is preserved under the tag [`v2021-seminar`](../../tree/v2021-seminar) and as a PDF in [`archive/2021/`](archive/2021/The_Amazon_Fund_2021.pdf).
 
@@ -74,7 +74,7 @@ Raw downloads are cached in `data/raw/` (all committed except the 123 MB IBAMA f
 | `R/` | One file per step: `prodes.R`, `fund_scrape.R`, `fund_coverage.R`, `priority.R`, `controls.R`, `panel.R`, `estimate.R`, `report.R` |
 | `data/raw/`, `data/manual/` | Cached downloads and the two hand-maintained inputs |
 | `figures/`, `results/` | Figures and coefficient tables produced by `run_all.R` |
-| `docs/` | Design, implementation plan and manual-review notes |
+| `docs/` | Research design ([`design.md`](docs/design.md)) and manual-review notes |
 
 ## What this can and cannot say
 

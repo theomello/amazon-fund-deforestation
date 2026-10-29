@@ -19,6 +19,7 @@ est_staggered <- function(panel) {
   d <- sample_of(panel) |>
     dplyr::mutate(id = as.integer(factor(cd_mun)), g = dplyr::coalesce(first_treat_year, 0L),
                   cohort = dplyr::coalesce(first_treat_year, 10000L))
+  set.seed(2026)  # did bootstraps its standard errors; fix the draw so results are reproducible
   att <- did::att_gt(yname = "y", tname = "year", idname = "id", gname = "g", data = as.data.frame(d),
                      control_group = "notyettreated", allow_unbalanced_panel = TRUE, print_details = FALSE)
   list(att = att,
