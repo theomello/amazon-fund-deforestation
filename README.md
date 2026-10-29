@@ -31,15 +31,20 @@ Raw IBGE spreadsheets and the literature PDFs used during the project are not in
 
 ## Running it
 
-Requires R with `tidyverse`, `readxl`, `foreign`, `plm`, `sandwich`, `lmtest`, `fastDummies`, `writexl`, `rio`, `geobr`, `sf`, `tikzDevice`, `texreg` and `xtable`.
+Requires R (tested with 4.5) with `tidyverse`, `readxl`, `foreign`, `plm`, `sandwich`, `lmtest`, `fastDummies`, `writexl`, `rio`, `geobr`, `sf`, `crul`, `microbenchmark`, `tikzDevice`, `texreg` and `xtable`, plus the `en_US.UTF-8` locale.
 
 ```sh
-Rscript code/analysis.R          # run from the repo root
+Rscript code/analysis.R          # run from the repo root; regenerates the TikZ figures in report/
 cd report && latexmk -pdf "The Amazon Fund.tex"
 ```
 
-## Caveats
+## Notes on the code (updated 2026)
 
-- `code/analysis.R` is the exploratory script as written in 2021. Variable names are partly German (`Gemeinde` = municipality, `Fläche` = area, `Abholzungen` = deforestation) and it was developed interactively. For example, line 48 uses `means`, which is only loaded at line 1298, so it will not run cleanly top to bottom.
-- The only change since 2021 is that file paths are now relative to the repo root. I have not re-run the full script. The final `geobr` map section downloads data at run time.
-- The script contains a block that replaces missing values with municipality means. It is marked `DO NOT USE WITHOUT CHECKING` in the code.
+`code/analysis.R` is the exploratory 2021 script. Variable names are partly German (`Gemeinde` = municipality, `Fläche` = area, `Abholzungen` = deforestation, `Jahr` = year). It runs top to bottom with `Rscript code/analysis.R` (R 4.5, plm 2.6) and reproduces the point estimates of DiD models 1–4 in the report exactly. Changes since the submitted version:
+
+- **Locale:** the script now pins `LC_COLLATE` to `en_US.UTF-8`. The hard-coded `Gemeinde_id` values come from the alphabetical order of municipality names. Under the C locale that order changes and the IDs point at the wrong municipalities.
+- **Run order:** a few plots that referenced objects before they were created, or after they were overwritten, were moved. The `updated_means.xlsx` table is now called `means_long`.
+- **Clustered standard errors (this changes results):** the original code passed `cluster = "Jahr"`, which `plm` doesn't accept and `sandwich::vcovHC` silently ignores for `lm` models. Models 2–4 also used model 1's covariance matrix. Standard errors are now clustered by municipality, each from its own model. With these, all `Treated`, year and `did` coefficients in models 1–4 stay significant (at least 5%). **The appendix tables and the statements in the report that models lose significance under clustering are therefore not supported.** The report PDF has been left as submitted.
+- **DiD model 3:** time-invariant controls (`Reservations`, `agriculture`) were removed from the within model. Older `plm` versions dropped them silently, and the reported coefficients are unchanged.
+- **Removed:** an unfinished lag-dummy section and a `geobr` map stub at the end of the script. Neither worked nor fed into the report. Both are still in the git history.
+- The TikZ figures in `report/` were regenerated. The plotted data is identical; only the legend rendering differs with newer ggplot2.

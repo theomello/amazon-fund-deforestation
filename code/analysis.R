@@ -1,4 +1,7 @@
 # Run from the repository root: Rscript code/analysis.R  (data in data/, tikz output to report/)
+# The hard-coded Gemeinde_id values below come from as.numeric(factor(Gemeinde)), so they depend on
+# the alphabetical sort order of the municipality names. Pin it so the IDs are the same everywhere.
+if (Sys.setlocale("LC_COLLATE", "en_US.UTF-8") == "") stop("Locale en_US.UTF-8 is required (see README)")
 library(readr)
 library(readxl)
 library(foreign)
@@ -45,11 +48,6 @@ ggplot(data = Wald, mapping = aes(x = Jahr, y = Abholzungen)) + geom_point() + g
 dev.off()
 
 
-tikz('report/T&CGraph.tex',width=4.5,height=4)
-ggplot(means, aes(Jahr)) + 
-  geom_line(aes(y = FlächeT, colour = "Treatment")) + 
-  geom_line(aes(y = FlächeC, colour = "Control"))
-dev.off()
 
 
 ## Start looking at municipalities  
@@ -664,7 +662,6 @@ table(abholzungen_merged$Jahr)
 table(abholzungen_merged$Gemeinde)
 
 subset(abholzungen_merged, is.na(Cashflow))
-subset(abholzungen_merged, is.na(Gemeinde_id))
 subset(abholzungen_merged, is.na(Fläche))
 
 abholzungen_merged$Cashflow[is.na(abholzungen_merged$Cashflow)] <- 0
@@ -1273,6 +1270,11 @@ names(treatedyearmeans)[2] <- "FlächeT"
 names(controlyearmeans)[1] <- "Jahr"
 names(controlyearmeans)[2]<- "FlächeC"
 means <- merge(treatedyearmeans, controlyearmeans, by = "Jahr")
+tikz('report/T&CGraph.tex',width=4.5,height=4)
+ggplot(means, aes(Jahr)) + 
+  geom_line(aes(y = FlächeT, colour = "Treatment")) + 
+  geom_line(aes(y = FlächeC, colour = "Control"))
+dev.off()
 
 means <- cbind(treated2010means, treated2011means, treated2012means, treated2013means, treated2014means, treated2015means, treated2016means, treated2017means, treated2018means, treatedyearmeans, controlyearmeans)
 means[3] <- NULL
@@ -1295,16 +1297,16 @@ for(t in 1:length(means$Jahr)){ifelse(means$Jahr[t] < 2015, means$Gruppe2015Jahr
 for(t in 1:length(means$Jahr)){ifelse(means$Jahr[t] < 2016, means$Gruppe2016Jahr[t] <- -1, ifelse(means$Jahr[t] == 2016, means$Gruppe2016Jahr[t] <- 0, means$Gruppe2016Jahr[t] <- 1))}
 for(t in 1:length(means$Jahr)){ifelse(means$Jahr[t] < 2017, means$Gruppe2017Jahr[t] <- -1, ifelse(means$Jahr[t] == 2017, means$Gruppe2017Jahr[t] <- 0, means$Gruppe2017Jahr[t] <- 1))}
 for(t in 1:length(means$Jahr)){ifelse(means$Jahr[t] < 2018, means$Gruppe2018Jahr[t] <- -1, ifelse(means$Jahr[t] == 2018, means$Gruppe2018Jahr[t] <- 0, means$Gruppe2018Jahr[t] <- 1))}
-means <- read_xlsx("data/updated_means.xlsx")
+means_long <- read_xlsx("data/updated_means.xlsx")
 
 
 #### DID GRAPHIK ########### ########### ########### ########### ###########
 
-means$post <- 0
-for(i in 1:length(means$time_til)){ifelse(means$time_til[i] > -1, means$post[i] <- 1, means$post[i] <- 0)}
+means_long$post <- 0
+for(i in 1:length(means_long$time_til)){ifelse(means_long$time_til[i] > -1, means_long$post[i] <- 1, means_long$post[i] <- 0)}
 
 
-means <- means%>%
+means_long <- means_long%>%
 mutate(
   lead1 = case_when(time_til == -1 ~ 1, TRUE ~ 0),
   lead2 = case_when(time_til == -2 ~ 1, TRUE ~ 0),
@@ -1331,7 +1333,7 @@ mutate(
 
 
 graph_regression <- plm(Fläche_mean ~ lead1 + lead2 + lead3 + lead4 + lead5 + lead6 + lead7 + lead8 + lead9 + lag1 + 
-                          lag2 + lag3 + lag4 + lag5 + lag6 + lag7 + lag8 + lag9 + lag10, data = means)
+                          lag2 + lag3 + lag4 + lag5 + lag6 + lag7 + lag8 + lag9 + lag10, data = means_long)
 summary(graph_regression)
 
 # order of the coefficients for the plot
@@ -1519,11 +1521,10 @@ ggplot() + geom_point(data = abholzungen_did, mapping = aes(x = Cashflow, y = di
 ggplot() + geom_point(data = abholzungen_did, mapping = aes(x = Cashflow, y = Anteil_abholzung))
 ggplot() + geom_point(data = abholzungen_did, mapping = aes(x = Fläche_Indianer, y = diff2))
 ggplot() + geom_point(data = abholzungen_did, mapping = aes(x = Fläche_Indianer, y = Anteil_abholzung))
-ggplot() + geom_point(data = abholzungen_did, mapping = aes(x = Cashflow, y = diff))
 
 
 
-ggplot(abholzungen_did, aes(Cashflow, Fläche, color = Gemeinde, shape = Gemeinde)) +
+ggplot(as.data.frame(abholzungen_did), aes(Cashflow, Fläche, color = Gemeinde, shape = Gemeinde)) +
   geom_point()+
   geom_smooth(se = TRUE)+
   scale_color_grey()+
@@ -1620,6 +1621,7 @@ abholzungen_did$lags <- lag(abholzungen_did$Fläche)
 abholzungen_did$diff <- diff(abholzungen_did$Fläche)
 abholzungen_did$betw <- Between(abholzungen_did$Fläche)
 abholzungen_did$with <- Within(abholzungen_did$Fläche)
+ggplot() + geom_point(data = abholzungen_did, mapping = aes(x = Cashflow, y = diff))
 
 
 ## First Difference Estimators
@@ -1693,7 +1695,7 @@ wi <- plm(diff ~ dCashflow + Verwendete_Fläche + Jahr, data = abholzungen_did, 
           ### First model with significant coefficient 
     
 re <- plm(diff ~ dCashflow + dCashflow*Jahr + Jahr, data = abholzungen_did, model = "random") 
-summary(re)
+try(summary(re))  # regressors are collinear; newer plm versions fail on the Wald test here
 
 
 
@@ -1718,17 +1720,17 @@ summary(lm)
 ## Estimating Fixed effects model 
 FE <- plm(with ~ Cashflowlags + factor(Jahr) + Cashflowlags*factor(Jahr) +Reservations + agriculture + factor(Gemeinde)*Cashflowlags, data = abholzungen_did, model = "within")
 summary(FE)
-coeftest(FE, vcov=vcovHC(FE,type="HC0",cluster="Jahr"))
-coeftest(FE, vcov=vcovHC(FE, type = "HC0", omega = TRUE, sandwich = TRUE, cluster="Jahr")) 
+# Standard errors clustered by municipality
+coeftest(FE, vcov = vcovHC(FE, type = "HC0", cluster = "group"))
       ### Using lags instead of difference leads to much higher significance
       ### Using the with variable leads to higher R squared
       ### normalized measure as a dependent variable leads to double the number of observations (?)
 
 
 ## Estimating Difference in Difference Model
-didreg = lm(FlÄche ~ Treated + Jahr + did + Reservations + agriculture, data = abholzungen_did)
+didreg = lm(Fläche ~ Treated + Jahr + did + Reservations + agriculture, data = abholzungen_did)
 summary(didreg)
-clusterdidreg <- coeftest(didreg, vcov = vcovHC(didreg, type = "HC0", omega = NULL, sandwich = TRUE, cluster = "Jahr"))
+clusterdidreg <- coeftest(didreg, vcov = vcovCL(didreg, cluster = ~Gemeinde, type = "HC0"))
 
 ## Estimating First Difference Model
 FD <- plm(Fläche ~ factor(Jahr) + Cashflow + Cashflow*factor(Jahr) + Reservations + agriculture + factor(Gemeinde)*Cashflow, data = abholzungen_did, model = "fd")
@@ -1737,19 +1739,18 @@ summary(FD)
 ### Estimating DiD with other dependent variable 
 didreg2 = lm(Anteil_abholzung ~ Treated + Jahr + did + Reservations + agriculture, data = abholzungen_did)
 summary(didreg2)
-coeftest(didreg2, vcov = vcovHC(didreg, type = "HC0", omega = NULL, sandwich = TRUE, cluster = "Jahr"))
-clusterdidreg2 <- coeftest(didreg2, vcov = vcovHC(didreg, type = "HC0", omega = NULL, sandwich = TRUE, cluster = "Jahr"))
+clusterdidreg2 <- coeftest(didreg2, vcov = vcovCL(didreg2, cluster = ~Gemeinde, type = "HC0"))
 
-didreg3 = plm(diff ~ Treated + Jahr + did + Reservations + agriculture, data = abholzungen_did)
+# Reservations and agriculture are time-invariant, so the within model cannot identify them
+# (older plm versions dropped them silently; newer ones fail)
+didreg3 = plm(diff ~ Treated + Jahr + did, data = abholzungen_did)
 summary(didreg3)
-coeftest(didreg3, vcov = vcovHC(didreg, type = "HC0", omega = TRUE, sandwich = TRUE, cluster = "Jahr"))
-clusterdidreg3 <- coeftest(didreg3, vcov = vcovHC(didreg, type = "HC0", omega = NULL, sandwich = TRUE, cluster = "Jahr"))
+clusterdidreg3 <- coeftest(didreg3, vcov = vcovHC(didreg3, type = "HC0", cluster = "group"))
 
 
 didreg4 = plm(diff2 ~ Treated + Jahr + did, data = abholzungen_did)
 summary(didreg4)
-coeftest(didreg4, vcov = vcovHC(didreg, type = "HC0", omega = TRUE, sandwich = TRUE, cluster = "Jahr"))
-clusterdidreg4 <- coeftest(didreg4, vcov = vcovHC(didreg, type = "HC0", omega = NULL, sandwich = TRUE, cluster = "Jahr"))
+clusterdidreg4 <- coeftest(didreg4, vcov = vcovHC(didreg4, type = "HC0", cluster = "group"))
 
 
 
@@ -1793,41 +1794,3 @@ texreg(clusterdidreg3, dcolumn = TRUE, booktabs = TRUE,use.packages = FALSE, lab
 
 screenreg(clusterdidreg4)
 texreg(clusterdidreg4, dcolumn = TRUE, booktabs = TRUE,use.packages = FALSE, label = "tab:3", caption = "DiD model",float.pos = "h")
-
-
-
-
-
-
-### Adding multiple post treatment Dummy columns with different lags
-### Lag = 1 Period
-abholzungen_did$Post = 0
-for(i in 1:length(abholzungen_did$Fläche)) {abholzungen_did$Post[i+1] = abholzungen_did$Treatments[i]}
-## Lag = 2 periods 
-abholzungen_did$Post2 = 0 
-for(i in 1:length(abholzungen_did$Fläche)) {abholzungen_did$Post2[i+2] = abholzungen_did$Treatments[i]}
-## Lag = 3 periods
-abholzungen_did$Post3 = 0 
-for(i in 1:length(abholzungen_did$Fläche)) {abholzungen_did$Post3[i+3] = abholzungen_did$Treatments[i]}
-
-
-### Models (FE) including multiple treatment and post variables 
-summary(plm(Fläche ~ Treatments + factor(Jahr) + Treatments*factor(Jahr), data = abholzungen_did, model = "within")) 
-## Coefficient has larger magnitude but is insignificant
-summary(plm(diff ~ Cashflow + Post2 + Cashflow*Post2, data = abholzungen_did, model = "within"))
-summary(plm(diff ~ dCashflow + Post2 + dCashflow*Post2, data = abholzungen_did, model = "within")) 
-## Only Cashflow has significance 
-summary(plm(diff ~ dCashflow + Post + dCashflow*Post + Verwendete_Fläche + Anteil_Amazonas, data = abholzungen_did, model = "within")) 
-## Seems like the most appropriate using the difference in treatments
-## Parameter have significance, but are small in magnitude
-## When substituting Post with Post 3 all coefficients loose significance except for the Cashflow coefficient 
-summary(plm(diff ~ Treatments + Post3 + Treatments*Post3, data = abholzungen_did, model = "within")) 
-## Interestingly the coefficient becomes large and positive with Post3 
-
-
-
-##### Maps
-metadata <- download_metadata()
-head(metadata)
-maps <- read_amazon(simplified = TRUE, showProgress = TRUE, year = 2012)
-dataset_final = left_join(maps, abholzungen, by=c("code_muni"="Codmun7"))
