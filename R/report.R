@@ -99,6 +99,29 @@ fig_event <- function(d, ref, title, subtitle, name) {
   save_fig(p, name, height = 4.2)
 }
 
+# Headline: restart exposure from all contracts since 2023, next to the stricter
+# version that only counts contracts signed before the 2025 outcome year.
+fig_restart <- function(models) {
+  series <- c("All contracts since 2023" = "restart_all", "Only contracts signed before Aug 2024" = "restart")
+  colors <- setNames(c("#2a78d6", "#eb6834"), names(series))
+  d <- dplyr::bind_rows(lapply(series, function(m) dplyr::bind_rows(es_frame(models[[m]]), tibble::tibble(year = 2022L, est = 0, se = 0))),
+                        .id = "variant") |>
+    dplyr::mutate(variant = factor(variant, names(series)), pct = pct_effect(est),
+                  lo = pct_effect(est - 1.96 * se), hi = pct_effect(est + 1.96 * se),
+                  x = year + ifelse(variant == names(series)[1], -0.15, 0.15))
+  p <- ggplot2::ggplot(d, ggplot2::aes(x, pct, colour = variant)) +
+    ggplot2::geom_hline(yintercept = 0, colour = INK2, linewidth = 0.4) +
+    ggplot2::geom_vline(xintercept = 2022.5, linetype = "dashed", colour = INK2, linewidth = 0.4) +
+    ggplot2::geom_linerange(ggplot2::aes(ymin = lo, ymax = hi), linewidth = 0.8, alpha = 0.6) +
+    ggplot2::geom_point(size = 2.2) +
+    ggplot2::scale_colour_manual(values = colors, name = NULL) +
+    ggplot2::labs(title = "After the restart, deforestation fell where more new money was contracted",
+                  subtitle = "Effect of R$ 1 million contracted since 2023, by year (relative to 2022; 95% CI).\nThe fall comes from contracts signed from Aug 2024 on, i.e. during the years it is measured in.",
+                  x = NULL, y = "% change in deforestation") +
+    theme_report()
+  save_fig(p, "04_restart_event_study", height = 4.6)
+}
+
 fig_staggered <- function(staggered) {
   d <- staggered$dynamic
   e <- tibble::tibble(e = d$egt, pct = pct_effect(d$att.egt), lo = pct_effect(d$att.egt - 1.96 * d$se.egt),
@@ -131,8 +154,9 @@ write_results <- function(models) {
   dir.create("results", showWarnings = FALSE)
   fixest::etable(models$main, models$mechanism, tex = FALSE) |> utils::write.csv("results/main_and_mechanism.csv")
   readr::write_csv(models$robustness, "results/robustness.csv")
-  restart <- dplyr::bind_rows(lapply(c(main = "restart", all_contracts = "restart_all", without_uniao = "restart_no_uniao",
-                                         asinh_exposure = "restart_asinh"),
+  restart <- dplyr::bind_rows(lapply(c(all_contracts = "restart_all", signed_before_aug2024 = "restart",
+                                         signed_before_aug2024_without_uniao = "restart_no_uniao",
+                                         signed_before_aug2024_asinh = "restart_asinh"),
                                        function(m) es_frame(models[[m]])), .id = "variant")
   readr::write_csv(restart, "results/restart_event_study.csv")
   readr::write_csv(es_frame(models$freeze), "results/freeze_event_study.csv")
@@ -143,8 +167,7 @@ write_results <- function(models) {
 report_all <- function(panel, models) {
   fig_overview(panel)
   fig_map(panel)
-  fig_event(es_frame(models$restart), 2022L, "After the 2023 restart, deforestation fell faster where more new money was contracted",
-            "Effect of R$ 1 million contracted from 2023 on, by year (relative to 2022; 95% CI)", "04_restart_event_study")
+  fig_restart(models)
   fig_staggered(models$staggered)
   fig_event(es_frame(models$freeze), 2018L, "The 2019 freeze: no rise where Fund money dried up",
             "Effect of R$ 1 million/year of lost local Fund money, by year (relative to 2018; 95% CI)", "06_freeze_event_study")

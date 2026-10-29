@@ -10,20 +10,20 @@ This started as my seminar paper in the second semester of my economics bachelor
 
 ![Restart event study](figures/04_restart_event_study.png)
 
-**After the 2023 restart, deforestation fell faster in municipalities that contracted more new Fund money.** Each R$ 1 million contracted from 2023 on is associated with about **2 % less deforestation in 2024, 5 % in 2025 and 6 % in 2026**, relative to 2022. All three estimates are statistically significant. The comparison is within the same state and year, so it holds fixed everything that changed for the whole Amazon or a whole state at the same time.
+**After the 2023 restart, deforestation fell in municipalities that contracted more new Fund money.** Each R$ 1 million contracted since 2023 is associated with about **5 % less deforestation in 2025 and 6 % in 2026**, relative to 2022 (t ≈ −4 for both; 2024: −1 %, not significant). The comparison is within the same state and year, and it controls for each municipality's blacklist status by year, so it holds fixed everything that changed for the whole Amazon, a whole state or the priority municipalities at the same time.
 
-**Read this as suggestive, not as proof.** The restart coincided with the return of federal environmental enforcement under the new government, and new projects partly went to the municipalities where deforestation had peaked in 2019–2022. Some coefficients before 2018 are negative too, which means exposed municipalities were on a rising path before the restart. Part of the decline could therefore be a return to normal levels or enforcement targeted at the same places. Two checks are next (see *Next steps*).
+**The big caveat is timing.** The decline comes entirely from contracts signed **from August 2024 on**, mostly the R$ 150 million *União com Municípios* programme, which explicitly targets priority municipalities. Those contracts were signed *during* the years in which the decline is measured, so the money may have followed falling deforestation rather than caused it. Counting only contracts signed before August 2024 (orange in the figure), the effect disappears (+8 % in 2025, +9 % in 2026, not significant). The pre-2022 coefficients are also all negative (2015 and 2017 individually significant), so exposed municipalities were already on a rising path before the restart. Treat this as the most interesting pattern in the data, not as proof. The 2027 PRODES data will show whether the União municipalities keep diverging.
 
 ### The rest of the picture
 
 | Question | Design | Result |
 |---|---|---|
-| Does more money in a year mean less deforestation the next year? | Fixed effects, municipality + state × year | No. +5 % per R$ 1 million (p = 0.15); none of 21 robustness variants is significantly negative ([figure](figures/07_dose_response_robustness.png)) |
-| What happens after a municipality gets its first local project? | Staggered DiD (Callaway & Sant'Anna) | Deforestation keeps rising relative to not-yet-treated municipalities (+0.35 log points on average; [figure](figures/05_first_project_event_study.png)). This most likely reflects *targeting*: projects go to active deforestation frontiers |
-| Did deforestation rise where Fund money dried up in the 2019 freeze? | Event study on each municipality's money shortfall | No detectable rise ([figure](figures/06_freeze_event_study.png)). Payments on existing contracts continued through 2019–2022; only new contracts stopped |
+| Does more money in a year mean less deforestation the next year? | Fixed effects, municipality + state × year | No. +5 % per R$ 1 million (p = 0.15). None of 20 robustness variants is significantly negative; with a two-year lag the association is significantly *positive* (+12 %, p < 0.001), consistent with money following deforestation ([figure](figures/07_dose_response_robustness.png)) |
+| What happens after a municipality gets its first local project? | Staggered DiD (Callaway & Sant'Anna) | Deforestation keeps rising relative to not-yet-treated municipalities (+0.35 log points on average; [figure](figures/05_first_project_event_study.png)). The most plausible reading is *targeting* (projects go to active frontiers), though the design can't separate it from an effect |
+| Did deforestation rise where Fund money dried up in the 2019 freeze? | Event study on each municipality's money shortfall | No detectable rise ([figure](figures/06_freeze_event_study.png)), and the pre-period is not clean (2008, 2009 and 2017 significantly negative). Payments on existing contracts continued through 2019–2022; only new contracts stopped |
 | Does local Fund money bring more enforcement? | IBAMA flora fines as outcome | No effect |
 
-Taken together: local Fund money was **not** allocated at random. It followed deforestation, which is why naive comparisons (including my own in 2021) find a positive association. The restart provides the cleanest variation so far, and it points in the hoped-for direction.
+Taken together: local Fund money was **not** allocated at random. It followed deforestation, which is why naive comparisons (including my own in 2021) find a positive association. The restart is the most promising source of variation, but so far its timing doesn't allow a causal reading.
 
 ## Where the money went
 
@@ -31,7 +31,7 @@ Taken together: local Fund money was **not** allocated at random. It followed de
 
 ![Deforestation in the Legal Amazon](figures/02_deforestation.png)
 
-Only about **23 % of Fund money** went to projects that name the municipalities or indigenous lands where they work. The estimates above concern that local money. State programmes (30 %) and biome-wide or federal programmes (46 %, e.g. IBAMA enforcement and satellite monitoring) can't be tied to municipalities. They're absorbed by the state × year fixed effects.
+Only about **23 % of contracted Fund support** (19 % of the money disbursed so far) went to projects that name the municipalities or indigenous lands where they work. The estimates above concern that local money. State programmes (30 % of contracted support) and biome-wide or federal programmes (46 %, e.g. IBAMA enforcement and satellite monitoring) can't be tied to municipalities. They're absorbed by the state × year fixed effects.
 
 ![Map of local Fund money](figures/03_map_money.png)
 
@@ -42,7 +42,7 @@ Only about **23 % of Fund money** went to projects that name the municipalities 
 | Data | Spreadsheets copied by hand from the Fund's website, PRODES export 2008–2020 | Everything downloaded by script: all 156 project pages with 644 dated disbursements (they sum exactly to the Fund's published R$ 2,926 million), PRODES through 2026 |
 | Treatment | "Has a project": binary, no intensity | R$ per municipality per year (2025 prices), plus freeze and restart exposure |
 | Method | Two-way fixed effects (`plm`), plain staggered DiD | `fixest` with state × year fixed effects, Callaway–Sant'Anna for staggered adoption, event studies around the freeze and restart |
-| Code | One 1,800-line exploratory script | Small tested functions (86 unit tests), one entry point, about 40 seconds end to end |
+| Code | One 1,800-line exploratory script | Small tested functions (91 unit tests), one entry point, about 40 seconds end to end |
 
 The 2021 version is preserved under the tag [`v2021-seminar`](../../tree/v2021-seminar) and as a PDF in [`archive/2021/`](archive/2021/The_Amazon_Fund_2021.pdf).
 
@@ -67,7 +67,7 @@ Requires R ≥ 4.5 with `tidyverse`, `fixest`, `did`, `sf`, `geobr`, `httr2`, `r
 - **RStudio:** open `amazon-fund-deforestation.Rproj` and source `run_all.R`.
 - **Terminal:** `Rscript run_all.R` from the repo root.
 
-Raw downloads are cached in `data/raw/`, so reruns work offline; set `REFRESH <- TRUE` in `run_all.R` to fetch fresh data. Run the tests with `Rscript tests/testthat.R`.
+Raw downloads are cached in `data/raw/` (all committed except the 123 MB IBAMA file, which is downloaded on the first run), so later runs work offline; set `REFRESH <- TRUE` in `run_all.R` to fetch fresh data. Run the tests with `Rscript tests/testthat.R`.
 
 | Folder | Contents |
 |---|---|
@@ -78,14 +78,14 @@ Raw downloads are cached in `data/raw/`, so reruns work offline; set `REFRESH <-
 
 ## What this can and cannot say
 
-- **It covers local projects only** (about 23 % of the money). The effect of the Fund as a whole, including federal enforcement it financed, is absorbed by the year and state × year effects and can't be estimated this way.
+- **It covers local projects only** (about 23 % of contracted support). Money is in prices of PRODES year 2025 (Aug 2024–Jul 2025). The effect of the Fund as a whole, including federal enforcement it financed, is absorbed by the year and state × year effects and can't be estimated this way.
 - **Missing controls.** There are no weather controls: free sources would have needed far more downloading than the state × year effects justify. PRODES doesn't publish cloud cover per municipality. The cattle price index starts in 2010, so it enters only as a robustness check.
-- **The blacklist after 2022 is carried forward** from the last list with a free, machine-readable source. The 2023 and 2024 lists (Portarias MMA 834/2023 and 1.202/2024) are what the restart result most needs to control for.
+- **The blacklist after 2022 is carried forward** from the last list with a free, machine-readable source. The restart estimates control for blacklist status by year, but the 2023 and 2024 lists (Portarias MMA 834/2023 and 1.202/2024) are still missing.
 - Two staggered-adoption cohorts (2013, 2017) are small.
 - **Provisional:** the manual coverage review awaits a spot-check.
 
 ## Next steps
 
-1. Add the official 2023/2024 priority-municipality lists and re-estimate the restart, the check most likely to change the headline.
+1. Add the official 2023/2024 priority-municipality lists, and re-estimate the restart once PRODES 2027 is out: the test of whether the União municipalities keep diverging.
 2. Deeper identification for the restart: matching on pre-2019 trends or synthetic control.
 3. Possibly a new paper reporting the results.
