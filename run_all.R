@@ -7,3 +7,4 @@ for (f in list.files("R", pattern = "\\.R$", full.names = TRUE)) source(f)
 REFRESH <- FALSE
 
 prodes <- build_deforestation(REFRESH)
+fund <- build_fund(REFRESH)
