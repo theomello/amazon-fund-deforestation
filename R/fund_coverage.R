@@ -31,7 +31,10 @@ match_one <- function(local, abrangencia, munis) {
                   (length(ufs) == 0 | munis$uf %in% ufs), ]
   source_for <- function(k) if (grepl(paste0("^", substring(PLACE_PREFIX, 3)), k, perl = TRUE)) raw else text
   hit <- cand[vapply(cand$key, function(k) has_word(source_for(k), k), logical(1)), ]
-  hit <- hit[!duplicated(hit$key) & !(hit$key %in% hit$key[duplicated(hit$key)]), ]  # still ambiguous: skip
+  ambiguous <- unique(hit$key[duplicated(hit$key)])
+  if (length(ambiguous) > 0)  # name exists in several of the project's states: fix via coverage_overrides.csv
+    message("Ambiguous municipality name, not linked: ", paste(hit$name[hit$key %in% ambiguous][1], collapse = ", "))
+  hit <- hit[!(hit$key %in% ambiguous), ]
   # A name found only inside a longer matched name (Aripuanã in Novo Aripuanã) is dropped;
   # one that is also listed on its own (Grajaú next to Itaipava do Grajaú) is kept.
   standalone <- function(k) {

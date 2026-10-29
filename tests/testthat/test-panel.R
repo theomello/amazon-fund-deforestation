@@ -49,6 +49,14 @@ test_that("freeze exposure is pre-freeze minus freeze-period mean money", {
   expect_equal(e$freeze_exposure[e$cd_mun == "B"], 0)
 })
 
+test_that("restart exposure only counts contracts signed before the cutoff", {
+  proj <- tibble::tibble(slug = c("p1", "p2"), valor_apoio = c(10e6, 20e6),
+                         date_contract = as.Date(c("2023-05-01", "2025-03-01")))
+  l <- tibble::tibble(slug = c("p1", "p2"), cd_mun = c("A", "A"), weight = 1)
+  e <- restart_exposures(proj, l, flat_ipca, mun_attr, cutoff = as.Date("2024-08-01"))
+  expect_equal(e$restart_exposure[e$cd_mun == "A"], 10)
+})
+
 test_that("flora fines are counted per municipality and PRODES year, without cancelled ones", {
   f <- tibble::tibble(COD_MUNICIPIO = c("1500602", "1500602", "1500602", "1500602"),
                       DAT_HORA_AUTO_INFRACAO = c("2019-08-02 10:00:00", "2020-07-30 10:00:00", "2020-08-01 10:00:00", "2019-09-01 00:00:00"),

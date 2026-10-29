@@ -48,6 +48,21 @@ test_that("a shorter name listed on its own is kept next to a longer one", {
   expect_setequal(l$cd_mun, c("2104800", "2105351", "2101202"))
 })
 
+test_that("an ambiguous name across the project's states is reported, not silently dropped", {
+  m <- dplyr::bind_rows(munis, tibble::tribble(~cd_mun, ~name, ~uf,
+                                               "1200401", "Rio Branco", "AC",
+                                               "5107206", "Rio Branco", "MT"))
+  expect_message(l <- match_municipalities(project("Acre: Rio Branco; Mato Grosso: Querência", "Acre, Mato Grosso"), m),
+                 "Rio Branco")
+  expect_false(any(l$cd_mun %in% c("1200401", "5107206")))
+})
+
+test_that("Rio Branco (AC) is linked to the União com Municípios programme after review", {
+  skip_if_not(has_raw("data/raw/fundo_amazonia/pages/APL-Babacu.html"))
+  cov <- in_repo(build_coverage(write = FALSE))
+  expect_true("1200401" %in% cov$links$cd_mun[cov$links$slug == "Uniao-com-Municipios-pela-Reducao-de-Desmatamento-e-Incendios-Florestais"])
+})
+
 test_that("duplicate municipality names resolve by state", {
   expect_equal(links("Município de Presidente Médici", "Rondônia"), "1100254")
 })

@@ -25,6 +25,14 @@ test_that("Callaway-Sant'Anna recovers a known staggered effect", {
   expect_equal(st$overall$overall.att, -0.2, tolerance = 0.08, scale = 1)
 })
 
+test_that("exposure event studies control for baseline blacklist status by year", {
+  sim <- simulate_panel()
+  sim$restart_exposure <- ifelse(is.na(sim$first_treat_year), 0, 1)
+  sim$stock_2007_km2 <- 1
+  m <- est_exposure(sim, "restart_exposure", 2018L)
+  expect_true(any(grepl("priority_base", names(coef(m)))))
+})
+
 test_that("pct_effect converts a log-point coefficient into percent", {
   expect_equal(pct_effect(log(0.9)), -10)
 })

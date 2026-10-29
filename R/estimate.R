@@ -31,7 +31,10 @@ est_staggered <- function(panel) {
 est_exposure <- function(panel, exposure, ref_year, ever_treated_only = FALSE) {
   d <- sample_of(panel)
   if (ever_treated_only) d <- d[!is.na(d$first_treat_year), ]
-  rhs <- sprintf("i(year, %s, ref = %d) + %s + i(year, stock_2007_km2, ref = %d)", exposure, ref_year, CONTROLS, ref_year)
+  # Programmes target the priority blacklist, so blacklist status at the reference year gets its own year path.
+  d <- dplyr::mutate(d, priority_base = priority[year == ref_year][1], .by = cd_mun)
+  rhs <- sprintf("i(year, %s, ref = %d) + %s + i(year, stock_2007_km2, ref = %d) + i(year, priority_base, ref = %d)",
+                 exposure, ref_year, CONTROLS, ref_year, ref_year)
   fe_model(d, rhs)
 }
 
@@ -79,6 +82,9 @@ estimate_all <- function(panel) {
                  freeze_intensity = est_exposure(panel, "freeze_intensity", 2018L),
                  freeze_treated = est_exposure(panel, "freeze_exposure", 2018L, ever_treated_only = TRUE),
                  restart = est_exposure(panel, "restart_exposure", 2022L),
+                 restart_all = est_exposure(panel, "restart_exposure_all", 2022L),
+                 restart_no_uniao = est_exposure(panel, "restart_exposure_no_uniao", 2022L),
+                 restart_asinh = est_exposure(dplyr::mutate(panel, restart_asinh = asinh(restart_exposure)), "restart_asinh", 2022L),
                  robustness = est_robustness(panel))
   saveRDS(models, "output/models/models.rds")
   models

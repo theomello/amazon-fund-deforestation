@@ -82,7 +82,7 @@ fig_map <- function(panel) {
 
 es_frame <- function(model) {
   ct <- fixest::coeftable(model)
-  ct <- ct[grepl("^year::", rownames(ct)) & !grepl("stock", rownames(ct)), , drop = FALSE]
+  ct <- ct[grepl("^year::", rownames(ct)) & !grepl("stock|priority_base", rownames(ct)), , drop = FALSE]
   tibble::tibble(year = as.integer(sub("^year::([0-9]+):.*", "\\1", rownames(ct))), est = ct[, 1], se = ct[, 2])
 }
 
@@ -131,7 +131,10 @@ write_results <- function(models) {
   dir.create("results", showWarnings = FALSE)
   fixest::etable(models$main, models$mechanism, tex = FALSE) |> utils::write.csv("results/main_and_mechanism.csv")
   readr::write_csv(models$robustness, "results/robustness.csv")
-  readr::write_csv(es_frame(models$restart), "results/restart_event_study.csv")
+  restart <- dplyr::bind_rows(lapply(c(main = "restart", all_contracts = "restart_all", without_uniao = "restart_no_uniao",
+                                         asinh_exposure = "restart_asinh"),
+                                       function(m) es_frame(models[[m]])), .id = "variant")
+  readr::write_csv(restart, "results/restart_event_study.csv")
   readr::write_csv(es_frame(models$freeze), "results/freeze_event_study.csv")
   d <- models$staggered$dynamic
   readr::write_csv(tibble::tibble(e = d$egt, att = d$att.egt, se = d$se.egt), "results/first_project_event_study.csv")

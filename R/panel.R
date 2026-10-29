@@ -38,6 +38,15 @@ allocate_state_money <- function(disbursements, state_projects, ipca, mun_attr) 
     dplyr::rename(state_money_brl = money_brl)
 }
 
+# Restart exposure: money *contracted* from 2023 (so slow disbursement is not low
+# exposure), signed before `cutoff` so it is not chosen after the outcomes it explains.
+restart_exposures <- function(projects, links, ipca, mun_attr, cutoff = as.Date("2024-08-01")) {
+  contracts <- dplyr::filter(projects, date_contract >= as.Date("2023-01-01"), date_contract < cutoff) |>
+    dplyr::transmute(slug, date = date_contract, value_brl = valor_apoio)
+  allocate_money(contracts, links, ipca, mun_attr, "equal") |>
+    dplyr::summarise(restart_exposure = sum(money_brl) / 1e6, .by = cd_mun)
+}
+
 freeze_exposures <- function(money) {
   money |>
     dplyr::summarise(freeze_intensity = mean(money[year %in% 2016:2018]),
@@ -56,11 +65,13 @@ build_panel <- function() {
   local_disb <- dplyr::filter(disb, slug %in% local_slugs)
   money_m <- function(method) allocate_money(local_disb, links, ipca, mun_attr, method) |>
     dplyr::mutate(money_brl = money_brl / 1e6)
-  # Restart exposure counts money *contracted* from 2023, so slow disbursement is not low exposure.
-  contracts <- dplyr::filter(projects, slug %in% local_slugs, date_contract >= as.Date("2023-01-01")) |>
-    dplyr::transmute(slug, date = date_contract, value_brl = valor_apoio)
-  restart <- allocate_money(contracts, links, ipca, mun_attr, "equal") |>
-    dplyr::summarise(restart_exposure = sum(money_brl) / 1e6, .by = cd_mun)
+  local_projects <- dplyr::filter(projects, slug %in% local_slugs)
+  uniao <- "Uniao-com-Municipios-pela-Reducao-de-Desmatamento-e-Incendios-Florestais"
+  restart <- restart_exposures(local_projects, links, ipca, mun_attr) |>
+    dplyr::full_join(dplyr::rename(restart_exposures(local_projects, links, ipca, mun_attr, as.Date("2100-01-01")),
+                                   restart_exposure_all = restart_exposure), by = "cd_mun") |>
+    dplyr::full_join(dplyr::rename(restart_exposures(dplyr::filter(local_projects, slug != uniao), links, ipca, mun_attr),
+                                   restart_exposure_no_uniao = restart_exposure), by = "cd_mun")
   first <- dplyr::filter(projects, slug %in% local_slugs) |>
     dplyr::inner_join(links, by = "slug") |>
     dplyr::filter(!is.na(date_contract)) |>  # approved but not yet contracted: not treated yet
@@ -91,7 +102,7 @@ build_panel <- function() {
     dplyr::left_join(get_prices(mun_attr, ipca), by = c("cd_mun", "year")) |>
     dplyr::left_join(grid_join(get_fines(), "fines_flora"), by = c("cd_mun", "year")) |>
     dplyr::left_join(dplyr::select(mun_attr, -uf), by = "cd_mun") |>
-    dplyr::mutate(restart_exposure = dplyr::coalesce(restart_exposure, 0),
+    dplyr::mutate(dplyr::across(dplyr::starts_with("restart_exposure"), ~ dplyr::coalesce(.x, 0)),
                   y = log(defor_km2 + 0.01),
                   # Sample (spec §5): some deforestation at baseline and a non-negligible forest share.
                   in_sample = mean(defor_km2[year %in% 2008:2012]) > 0 & forest_km2 / area_km2 >= 0.02, .by = cd_mun)
