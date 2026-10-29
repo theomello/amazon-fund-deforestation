@@ -5,3 +5,5 @@ if (!dir.exists("data")) stop("Working directory must be the repository root (op
 suppressPackageStartupMessages(library(dplyr))
 for (f in list.files("R", pattern = "\\.R$", full.names = TRUE)) source(f)
 REFRESH <- FALSE
+
+prodes <- build_deforestation(REFRESH)
