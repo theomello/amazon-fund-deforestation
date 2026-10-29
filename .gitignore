@@ -2,16 +2,11 @@
 .Rhistory
 .RData
 .Rproj.user/
-# LaTeX build artifacts
-*.aux
-*.log
-*.toc
-*.lof
-*.lot
-*.blg
-*.bbl
-*.fls
-*.fdb_latexmk
-*.synctex.gz
-*.out
 Rplots.pdf
+.superpowers/
+# Built by run_all.R
+data/derived/
+output/
+# Large raw downloads are re-fetched by script
+data/raw/**/*.zip
+data/raw/**/*.nc
