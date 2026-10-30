@@ -39,6 +39,42 @@ est_exposure <- function(panel, exposure, ref_year, ever_treated_only = FALSE) {
   fe_model(d, rhs)
 }
 
+# Rambachan & Roth (2023) sensitivity: how large may post-period violations of
+# parallel trends be, relative to the largest pre-period change (Mbar), before
+# the 95% CI for `target_year` includes zero? The breakdown value is that Mbar.
+est_honest <- function(model, ref_year, target_year, mbar = seq(0, 2, by = 0.25)) {
+  b <- stats::coef(model)
+  es <- grep("^year::[0-9]+:", names(b), value = TRUE)
+  es <- es[!grepl("stock|priority_base", es)]
+  years <- as.integer(sub("^year::([0-9]+):.*", "\\1", es))
+  es <- es[order(years)]; years <- sort(years)
+  post <- years > ref_year
+  l_vec <- as.numeric(years[post] == target_year)
+  # At large Mbar the robust CI runs past HonestDiD's grid ("CI is open"); that only widens intervals
+  # that already include zero, so it does not move the breakdown value.
+  bounds <- suppressWarnings(HonestDiD::createSensitivityResults_relativeMagnitudes(
+    betahat = b[es], sigma = stats::vcov(model)[es, es], numPrePeriods = sum(!post), numPostPeriods = sum(post),
+    l_vec = l_vec, Mbarvec = mbar))
+  original <- HonestDiD::constructOriginalCS(betahat = b[es], sigma = stats::vcov(model)[es, es],
+                                             numPrePeriods = sum(!post), numPostPeriods = sum(post), l_vec = l_vec)
+  excludes_zero <- bounds$ub < 0 | bounds$lb > 0
+  list(bounds = tibble::as_tibble(bounds), original = tibble::as_tibble(original),
+       breakdown_mbar = if (excludes_zero[1]) max(bounds$Mbar[cumprod(excludes_zero) == 1]) else NA_real_)
+}
+
+# Sensitivity of the restart headline (all contracts) for 2025 and 2026; slow (~10 min).
+honest_restart <- function(models) {
+  out <- dplyr::bind_rows(lapply(c(2025L, 2026L), function(y) {
+    h <- est_honest(models$restart_all, ref_year = 2022L, target_year = y)
+    dplyr::bind_rows(dplyr::mutate(h$original, Mbar = NA_real_), h$bounds) |>
+      dplyr::transmute(target_year = y, Mbar = as.numeric(Mbar), lb = as.numeric(lb), ub = as.numeric(ub),
+                       breakdown_mbar = h$breakdown_mbar)
+  }))
+  dir.create("results", showWarnings = FALSE)
+  readr::write_csv(out, "results/honest_restart.csv")
+  out
+}
+
 # Mechanism: does Fund money bring more enforcement (IBAMA flora fines)?
 est_mechanism <- function(panel) {
   est_main(dplyr::mutate(panel, log_fines = log(fines_flora + 1)), outcome = "log_fines")

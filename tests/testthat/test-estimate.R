@@ -40,6 +40,18 @@ test_that("staggered DiD results are identical across runs (bootstrap is seeded)
   expect_identical(a, b)
 })
 
+test_that("honest DiD bounds keep a large clean effect and report a breakdown value", {
+  set.seed(3)
+  sim <- simulate_panel(n = 400, years = 2008:2022)
+  sim$exposure <- ifelse(sim$cd_mun <= "0000200", 1, 0)
+  sim$y <- sim$alpha + sim$delta - 0.5 * sim$exposure * (sim$year >= 2019) + rnorm(nrow(sim), sd = 0.3)
+  sim$stock_2007_km2 <- 1
+  m <- est_exposure(sim, "exposure", 2018L)
+  h <- est_honest(m, ref_year = 2018L, target_year = 2020L)
+  expect_true(h$breakdown_mbar >= 0.5)
+  expect_true(all(h$bounds$ub[h$bounds$Mbar == 0] < 0))
+})
+
 test_that("pct_effect converts a log-point coefficient into percent", {
   expect_equal(pct_effect(log(0.9)), -10)
 })

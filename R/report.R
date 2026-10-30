@@ -176,6 +176,26 @@ fig_targeting <- function(panel) {
   save_fig(p, "09_money_followed_deforestation", height = 5)
 }
 
+# Rambachan & Roth sensitivity of the restart headline (needs results/honest_restart.csv).
+fig_honest <- function(path = "results/honest_restart.csv") {
+  if (!file.exists(path)) return(invisible(NULL))
+  h <- readr::read_csv(path, show_col_types = FALSE) |>
+    dplyr::mutate(x = ifelse(is.na(Mbar), -0.25, Mbar), kind = ifelse(is.na(Mbar), "Original", "Robust"),
+                  target = paste("PRODES", target_year))
+  p <- ggplot2::ggplot(h, ggplot2::aes(x, ymin = pct_effect(lb), ymax = pct_effect(ub), colour = kind)) +
+    ggplot2::geom_hline(yintercept = 0, colour = INK2, linewidth = 0.4) +
+    ggplot2::geom_vline(xintercept = 1, linetype = "dashed", colour = INK2, linewidth = 0.4) +
+    ggplot2::geom_linerange(linewidth = 1.2) +
+    ggplot2::facet_wrap(~target) +
+    ggplot2::scale_colour_manual(values = c(Original = INK, Robust = ACCENT), name = NULL) +
+    ggplot2::scale_x_continuous(breaks = c(-0.25, 0, 0.5, 1, 1.5, 2), labels = c("Orig.", "0", "0.5", "1", "1.5", "2")) +
+    ggplot2::labs(title = "How robust is the restart effect to violations of parallel trends?",
+                  subtitle = "95% CI for the effect of R$ 1 million (all contracts) when post-2022 trend deviations may be up to\nMbar times the largest pre-period change (Rambachan & Roth 2023); dashed line: Mbar = 1",
+                  x = "Mbar", y = "% change in deforestation") +
+    theme_report()
+  save_fig(p, "10_restart_sensitivity", height = 4.4)
+}
+
 fig_staggered <- function(staggered) {
   d <- staggered$dynamic
   e <- tibble::tibble(e = d$egt, pct = pct_effect(d$att.egt), lo = pct_effect(d$att.egt - 1.96 * d$se.egt),
@@ -224,6 +244,7 @@ report_all <- function(panel, models) {
   fig_restart(models)
   fig_trajectories(panel)
   fig_targeting(panel)
+  fig_honest()
   fig_staggered(models$staggered)
   fig_event(es_frame(models$freeze), 2018L, "The 2019 freeze: no rise where Fund money dried up",
             "Effect of R$ 1 million/year of lost local Fund money, by year (relative to 2018; 95% CI)", "06_freeze_event_study")
