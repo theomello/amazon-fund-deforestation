@@ -14,6 +14,8 @@ This started as my seminar paper in the second semester of my economics bachelor
 
 **The big caveat is timing.** The decline comes entirely from contracts signed **from August 2024 on**, mostly the R$ 150 million *União com Municípios* programme, which explicitly targets priority municipalities and was signed only in September 2025. Those contracts were signed *during or after* the years in which the decline is measured, so the money may have followed falling deforestation rather than caused it. Counting only contracts signed before August 2024 (orange in the figure), the effect disappears (+8 % in 2025, +9 % in 2026, not significant). The pre-2022 coefficients are also all negative (2015 and 2017 individually significant), so exposed municipalities were already on a rising path before the restart. Treat this as the most interesting pattern in the data, not as proof. The 2027 PRODES data will show whether the União municipalities keep diverging.
 
+**How fragile is it?** A sensitivity analysis (Rambachan & Roth 2023, [figure](figures/10_restart_sensitivity.png)) asks how much the post-2022 trend may deviate from parallel, relative to the largest year-to-year swing seen before. The 2025 and 2026 effects stay significant only up to **Mbar = 0.25**, i.e. if post-period deviations are at most a quarter of the worst pre-period swing; at Mbar = 0.5 the interval already includes zero. The usual benchmark is Mbar = 1, so the result is fragile.
+
 The same pattern is visible without any model. União municipalities had deforestation peaks above the other groups in 2021–2022, and they were already falling faster from 2023, two years before their contract was signed:
 
 ![Deforestation by group](figures/08_raw_trajectories.png)
@@ -50,7 +52,7 @@ Local money was not spread evenly: municipalities that were already clearing mor
 | Data | Spreadsheets copied by hand from the Fund's website, PRODES export 2008–2020 | Everything downloaded by script: all 156 project pages with 644 dated disbursements (they sum exactly to the Fund's published R$ 2,926 million), PRODES through 2026 |
 | Treatment | "Has a project": binary, no intensity | R$ per municipality per year (2025 prices), plus freeze and restart exposure |
 | Method | Two-way fixed effects (`plm`), plain staggered DiD | `fixest` with state × year fixed effects, Callaway–Sant'Anna for staggered adoption, event studies around the freeze and restart |
-| Code | One 1,800-line exploratory script | Small tested functions (92 unit tests), one entry point, about 40 seconds end to end |
+| Code | One 1,800-line exploratory script | Small tested functions (94 unit tests), one entry point, about 40 seconds end to end |
 
 The 2021 version is preserved under the tag [`v2021-seminar`](../../tree/v2021-seminar) and as a PDF in [`archive/2021/`](archive/2021/The_Amazon_Fund_2021.pdf).
 
@@ -75,7 +77,7 @@ Requires R ≥ 4.5 with `tidyverse`, `fixest`, `did`, `sf`, `geobr`, `httr2`, `r
 - **RStudio:** open `amazon-fund-deforestation.Rproj` and source `run_all.R`.
 - **Terminal:** `Rscript run_all.R` from the repo root.
 
-Raw downloads are cached in `data/raw/` (all committed except the 123 MB IBAMA file, which is downloaded on the first run), so later runs work offline; set `REFRESH <- TRUE` in `run_all.R` to fetch fresh data. Run the tests with `Rscript tests/testthat.R`.
+The slow sensitivity bounds (~10 min) only rerun with `SENSITIVITY <- TRUE`; their results are committed in `results/honest_restart.csv`. Raw downloads are cached in `data/raw/` (all committed except the 123 MB IBAMA file, which is downloaded on the first run), so later runs work offline; set `REFRESH <- TRUE` in `run_all.R` to fetch fresh data. Run the tests with `Rscript tests/testthat.R`.
 
 | Folder | Contents |
 |---|---|
