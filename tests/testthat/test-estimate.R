@@ -42,14 +42,24 @@ test_that("staggered DiD results are identical across runs (bootstrap is seeded)
 
 test_that("honest DiD bounds keep a large clean effect and report a breakdown value", {
   set.seed(3)
-  sim <- simulate_panel(n = 400, years = 2008:2022)
+  sim <- simulate_panel(n = 400, years = 2014:2020)  # few periods: the bounds are slow to compute
   sim$exposure <- ifelse(sim$cd_mun <= "0000200", 1, 0)
   sim$y <- sim$alpha + sim$delta - 0.5 * sim$exposure * (sim$year >= 2019) + rnorm(nrow(sim), sd = 0.3)
   sim$stock_2007_km2 <- 1
   m <- est_exposure(sim, "exposure", 2018L)
-  h <- est_honest(m, ref_year = 2018L, target_year = 2020L)
+  h <- est_honest(m, ref_year = 2018L, target_year = 2020L, mbar = c(0, 0.5))
   expect_true(h$breakdown_mbar >= 0.5)
   expect_true(all(h$bounds$ub[h$bounds$Mbar == 0] < 0))
+})
+
+test_that("synthetic DiD recovers a known effect for a treated group", {
+  set.seed(4)
+  sim <- simulate_panel(n = 150, years = 2008:2022)
+  treated <- unique(sim$cd_mun)[1:20]
+  sim$y <- sim$alpha + sim$delta + rnorm(nrow(sim), sd = 0.2) - 0.3 * (sim$cd_mun %in% treated & sim$year >= 2019)
+  r <- est_synthdid(sim, treated, first_post = 2019L)
+  expect_equal(r$estimate[r$method == "Synthetic DiD"], -0.3, tolerance = 0.1, scale = 1)
+  expect_true(all(c("Synthetic DiD", "Synthetic control", "DiD") %in% r$method))
 })
 
 test_that("pct_effect converts a log-point coefficient into percent", {

@@ -1,0 +1,10 @@
+design,method,estimate,se,se_method,n_treated,n_donors,first_post
+"All other municipalities, from 2024",Synthetic DiD,0.3700511386402454,0.15303486768424243,placebo,48,575,2024
+"All other municipalities, from 2024",Synthetic control,0.2828709192718769,0.18449255535802891,placebo,48,575,2024
+"All other municipalities, from 2024",DiD,0.5436735889358015,0.15995650683594878,placebo,48,575,2024
+"Blacklisted municipalities only, from 2024",Synthetic DiD,0.03420374112174279,0.14101345161773635,jackknife,48,35,2024
+"Blacklisted municipalities only, from 2024",Synthetic control,0.05563825246627506,0.5325147862083587,jackknife,48,35,2024
+"Blacklisted municipalities only, from 2024",DiD,0.004429539869801158,0.18999906240856265,jackknife,48,35,2024
+"All other municipalities, from 2023",Synthetic DiD,0.28330112414123443,0.13758477299454194,placebo,48,575,2023
+"All other municipalities, from 2023",Synthetic control,0.20676629423265966,0.16124766907986945,placebo,48,575,2023
+"All other municipalities, from 2023",DiD,0.5180812869665072,0.1391052519282451,placebo,48,575,2023

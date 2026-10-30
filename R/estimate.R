@@ -39,6 +39,44 @@ est_exposure <- function(panel, exposure, ref_year, ever_treated_only = FALSE) {
   fe_model(d, rhs)
 }
 
+# Synthetic DiD (Arkhangelsky et al. 2021): reweight donor municipalities and
+# pre-period years so the donors' path matches the treated group before
+# `first_post`; compared with plain synthetic control and DiD on the same data.
+est_synthdid <- function(panel, treated, first_post, donors = NULL) {
+  d <- sample_of(panel)
+  if (!is.null(donors)) d <- d[d$cd_mun %in% c(treated, donors), ]
+  d <- as.data.frame(dplyr::transmute(d, unit = cd_mun, time = as.integer(year), y,
+                                      w = as.integer(cd_mun %in% .env$treated & year >= .env$first_post)))
+  m <- synthdid::panel.matrices(d, unit = "unit", time = "time", outcome = "y", treatment = "w")
+  # Placebo SEs need more donors than treated units; otherwise use the jackknife.
+  se_method <- if (m$N0 > nrow(m$Y) - m$N0) "placebo" else "jackknife"
+  set.seed(2026)  # placebo standard errors are drawn at random
+  fit <- list("Synthetic DiD" = synthdid::synthdid_estimate(m$Y, m$N0, m$T0),
+              "Synthetic control" = synthdid::sc_estimate(m$Y, m$N0, m$T0),
+              "DiD" = synthdid::did_estimate(m$Y, m$N0, m$T0))
+  tibble::tibble(method = names(fit), estimate = unname(vapply(fit, as.numeric, numeric(1))),
+                 se = unname(vapply(fit, function(f) sqrt(stats::vcov(f, method = se_method)), numeric(1))),
+                 se_method = se_method,
+                 n_treated = nrow(m$Y) - m$N0, n_donors = m$N0, first_post = first_post)
+}
+
+# Synthetic DiD for the União com Municípios municipalities (programme created in
+# late 2023, so PRODES 2024 is the first treated year; contract signed Sep 2025).
+synthdid_uniao <- function(panel) {
+  uniao <- "Uniao-com-Municipios-pela-Reducao-de-Desmatamento-e-Incendios-Florestais"
+  links <- readr::read_csv("data/derived/fund_links.csv", col_types = "ccd")
+  treated <- intersect(links$cd_mun[links$slug == uniao], panel$cd_mun[panel$in_sample])
+  blacklisted <- unique(panel$cd_mun[panel$priority == 1 & panel$year <= 2022])
+  out <- dplyr::bind_rows(
+    "All other municipalities, from 2024" = est_synthdid(panel, treated, 2024L),
+    "Blacklisted municipalities only, from 2024" = est_synthdid(panel, treated, 2024L, donors = setdiff(blacklisted, treated)),
+    "All other municipalities, from 2023" = est_synthdid(panel, treated, 2023L),
+    .id = "design")
+  dir.create("results", showWarnings = FALSE)
+  readr::write_csv(out, "results/synthdid_uniao.csv")
+  out
+}
+
 # Rambachan & Roth (2023) sensitivity: how large may post-period violations of
 # parallel trends be, relative to the largest pre-period change (Mbar), before
 # the 95% CI for `target_year` includes zero? The breakdown value is that Mbar.

@@ -16,6 +16,8 @@ This started as my seminar paper in the second semester of my economics bachelor
 
 **How fragile is it?** A sensitivity analysis (Rambachan & Roth 2023, [figure](figures/10_restart_sensitivity.png)) asks how much the post-2022 trend may deviate from parallel, relative to the largest year-to-year swing seen before. The 2025 and 2026 effects stay significant only up to **Mbar = 0.25**, i.e. if post-period deviations are at most a quarter of the worst pre-period swing; at Mbar = 0.5 the interval already includes zero. The usual benchmark is Mbar = 1, so the result is fragile.
 
+**Synthetic DiD on the União municipalities** (Arkhangelsky et al. 2021; [results](results/synthdid_uniao.csv)) builds a weighted comparison group that matches their deforestation path before 2024. Against **other blacklisted municipalities**, which are the comparable group (large, active frontiers), the União municipalities show **no difference after 2024** (+3.5 %, t = 0.2): their decline is matched by similar municipalities without the programme. Against all other municipalities the estimate is even positive (+45 %), but that comparison is distorted: the donors are mostly tiny municipalities whose deforestation fell to almost zero, which looks like a huge decline on a log scale.
+
 The same pattern is visible without any model. União municipalities had deforestation peaks above the other groups in 2021–2022, and they were already falling faster from 2023, two years before their contract was signed:
 
 ![Deforestation by group](figures/08_raw_trajectories.png)
@@ -52,7 +54,7 @@ Local money was not spread evenly: municipalities that were already clearing mor
 | Data | Spreadsheets copied by hand from the Fund's website, PRODES export 2008–2020 | Everything downloaded by script: all 156 project pages with 644 dated disbursements (they sum exactly to the Fund's published R$ 2,926 million), PRODES through 2026 |
 | Treatment | "Has a project": binary, no intensity | R$ per municipality per year (2025 prices), plus freeze and restart exposure |
 | Method | Two-way fixed effects (`plm`), plain staggered DiD | `fixest` with state × year fixed effects, Callaway–Sant'Anna for staggered adoption, event studies around the freeze and restart |
-| Code | One 1,800-line exploratory script | Small tested functions (94 unit tests), one entry point, about 40 seconds end to end |
+| Code | One 1,800-line exploratory script | Small tested functions (96 unit tests), one entry point, about 40 seconds end to end |
 
 The 2021 version is preserved under the tag [`v2021-seminar`](../../tree/v2021-seminar) and as a PDF in [`archive/2021/`](archive/2021/The_Amazon_Fund_2021.pdf).
 
@@ -72,12 +74,12 @@ Which municipalities a project covers is matched automatically from the project'
 
 ## Running it
 
-Requires R ≥ 4.5 with `tidyverse`, `fixest`, `did`, `sf`, `geobr`, `httr2`, `rvest`, `jsonlite` and `testthat`.
+Requires R ≥ 4.5 with `tidyverse`, `fixest`, `did`, `sf`, `geobr`, `httr2`, `rvest`, `jsonlite` and `testthat`; for the slow checks also `HonestDiD` (CRAN) and `synthdid` (`remotes::install_github("synth-inference/synthdid")`).
 
 - **RStudio:** open `amazon-fund-deforestation.Rproj` and source `run_all.R`.
 - **Terminal:** `Rscript run_all.R` from the repo root.
 
-The slow sensitivity bounds (~10 min) only rerun with `SENSITIVITY <- TRUE`; their results are committed in `results/honest_restart.csv`. Raw downloads are cached in `data/raw/` (all committed except the 123 MB IBAMA file, which is downloaded on the first run), so later runs work offline; set `REFRESH <- TRUE` in `run_all.R` to fetch fresh data. Run the tests with `Rscript tests/testthat.R`.
+The slow checks (HonestDiD bounds and synthetic DiD, ~15 min) only rerun with `SENSITIVITY <- TRUE`; their results are committed in `results/`. Raw downloads are cached in `data/raw/` (all committed except the 123 MB IBAMA file, which is downloaded on the first run), so later runs work offline; set `REFRESH <- TRUE` in `run_all.R` to fetch fresh data. Run the tests with `Rscript tests/testthat.R`.
 
 | Folder | Contents |
 |---|---|
@@ -97,5 +99,5 @@ The slow sensitivity bounds (~10 min) only rerun with `SENSITIVITY <- TRUE`; the
 ## Next steps
 
 1. Add the official 2023/2024 priority-municipality lists, and re-estimate the restart once PRODES 2027 is out: the test of whether the União municipalities keep diverging.
-2. Deeper identification for the restart: matching on pre-2019 trends or synthetic control.
+2. A shift-share instrument for Fund money (national donation inflows × predetermined local exposure).
 3. Possibly a new paper reporting the results.
