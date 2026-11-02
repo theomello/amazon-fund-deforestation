@@ -5,7 +5,7 @@ if (!dir.exists("data")) stop("Working directory must be the repository root (op
 suppressPackageStartupMessages(library(dplyr))
 for (f in list.files("R", pattern = "\\.R$", full.names = TRUE)) source(f)
 REFRESH <- FALSE
-SENSITIVITY <- FALSE  # TRUE re-runs the slow checks (~15 min): HonestDiD bounds and synthetic DiD in results/
+SENSITIVITY <- FALSE  # TRUE re-runs the slow checks (~25 min): HonestDiD bounds, synthetic DiD and interactive FE in results/
 
 prodes <- build_deforestation(REFRESH)
 fund <- build_fund(REFRESH)
@@ -15,5 +15,6 @@ models <- estimate_all(panel)
 if (SENSITIVITY) {
   honest_restart(models)
   synthdid_uniao(panel)
+  est_ife(panel)
 }
 report_all(panel, models)

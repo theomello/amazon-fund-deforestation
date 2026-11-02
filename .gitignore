@@ -10,3 +10,5 @@ output/
 # Large raw downloads are re-fetched by script
 data/raw/**/*.zip
 data/raw/**/*.nc
+# Reference papers (copyrighted PDFs)
+interactiveFE/

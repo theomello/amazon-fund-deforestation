@@ -65,3 +65,16 @@ test_that("synthetic DiD recovers a known effect for a treated group", {
 test_that("pct_effect converts a log-point coefficient into percent", {
   expect_equal(pct_effect(log(0.9)), -10)
 })
+
+test_that("interactive fixed effects remove a factor confounder that two-way FE misses", {
+  set.seed(5)
+  sim <- simulate_panel(n = 200, years = 2008:2022)
+  # Treated municipalities load more on a common trend: parallel trends fail, one factor fixes it.
+  sim$loading <- stats::ave(rnorm(nrow(sim)), sim$cd_mun) + !is.na(sim$first_treat_year)
+  sim$y <- sim$alpha + 0.3 * sim$loading * (sim$year - 2008) - 0.2 * sim$treated + rnorm(nrow(sim), sd = 0.3)
+  sim$first_project <- as.integer(sim$treated)
+  sim <- as.data.frame(sim)
+  expect_equal(fit_ife(sim, "y", "first_project", r = 1, CV = FALSE, se = FALSE)$att.avg, -0.2, tolerance = 0.05, scale = 1)
+  expect_gt(abs(fit_ife(sim, "y", "first_project", r = 0, CV = FALSE, se = FALSE)$att.avg + 0.2), 0.2)
+  expect_equal(as.numeric(fit_ife(sim, "y", "first_project", r = c(0, 3), CV = TRUE, se = FALSE)$r.cv), 1)
+})

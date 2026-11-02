@@ -113,6 +113,53 @@ honest_restart <- function(models) {
   out
 }
 
+# Interactive fixed effects (Bai 2009; Xu 2017; Liu, Wang & Xu 2024, via fect): impute each
+# treated municipality's untreated outcome from municipality and year effects plus r common
+# factors with municipality-specific loadings, fitted on untreated observations only.
+# Binary designs: first local project, and any contract since 2023 from PRODES 2023 on.
+ife_data <- function(panel) {
+  sample_of(panel) |>
+    dplyr::mutate(first_project = as.integer(!is.na(first_treat_year) & year >= first_treat_year),
+                  restart = as.integer(restart_exposure_all > 0 & year >= 2023), y_asinh = asinh(defor_km2)) |>
+    as.data.frame()
+}
+
+fit_ife <- function(data, outcome, treatment, method = "ife", ...) {
+  suppressWarnings(suppressMessages(fect::fect(stats::as.formula(paste(outcome, "~", treatment)), data = data,
+                                               index = c("cd_mun", "year"), method = method, force = "two-way",
+                                               seed = 2026, ...)))
+}
+
+# For each design and outcome: the ATT for r = 0..rmax factors with cross-validated
+# prediction error (MSPE on held-out untreated years), matrix completion, and for r = 0
+# (the imputation estimator) bootstrap SEs plus a placebo test on the last three
+# pre-treatment years. Slow (~10 min).
+est_ife <- function(panel, rmax = 4, nboots = 200) {
+  d <- ife_data(panel)
+  grid <- tidyr::expand_grid(design = c("first_project", "restart"), outcome = c("y", "y_asinh"))
+  events <- list()
+  rows <- lapply(seq_len(nrow(grid)), function(i) {
+    tr <- grid$design[i]; y <- grid$outcome[i]
+    cv <- fit_ife(d, y, tr, CV = TRUE, r = c(0, rmax), se = FALSE)
+    r0 <- fit_ife(d, y, tr, CV = FALSE, r = 0, se = TRUE, nboots = nboots)
+    pl <- fit_ife(d, y, tr, CV = FALSE, r = 0, se = TRUE, nboots = nboots, placeboTest = TRUE, placebo.period = c(-2, 0))
+    by_r <- vapply(seq_len(rmax), function(r) fit_ife(d, y, tr, CV = FALSE, r = r, se = FALSE)$att.avg, numeric(1))
+    mc <- fit_ife(d, y, tr, method = "mc", CV = TRUE, se = FALSE)
+    events[[paste(tr, y)]] <<- tibble::tibble(design = tr, outcome = y, e = as.integer(rownames(r0$est.att)) - 1L,
+                                              att = r0$est.att[, "ATT"], se = r0$est.att[, "S.E."], n = r0$est.att[, "count"])
+    tibble::tibble(design = tr, outcome = y, estimator = c(paste0("IFE, r = ", 0:rmax), "Matrix completion"),
+                   att = c(r0$att.avg, by_r, mc$att.avg), se = c(r0$est.avg[, "S.E."], rep(NA, rmax + 1)),
+                   cv_mspe = c(cv$CV.out.ife[, "MSPE"], NA), cv_choice = c(0:rmax == cv$r.cv, NA),
+                   placebo_att = c(pl$est.placebo[, "ATT.placebo"], rep(NA, rmax + 1)),
+                   placebo_p = c(pl$est.placebo[, "p.value"], rep(NA, rmax + 1)), n_treated = r0$Ntr)
+  })
+  out <- list(table = dplyr::bind_rows(rows), event = dplyr::bind_rows(events))
+  dir.create("results", showWarnings = FALSE)
+  readr::write_csv(out$table, "results/ife.csv")
+  readr::write_csv(out$event, "results/ife_event_study.csv")
+  out
+}
+
 # Mechanism: does Fund money bring more enforcement (IBAMA flora fines)?
 est_mechanism <- function(panel) {
   est_main(dplyr::mutate(panel, log_fines = log(fines_flora + 1)), outcome = "log_fines")

@@ -176,26 +176,6 @@ fig_targeting <- function(panel) {
   save_fig(p, "09_money_followed_deforestation", height = 5)
 }
 
-# Rambachan & Roth sensitivity of the restart headline (needs results/honest_restart.csv).
-fig_honest <- function(path = "results/honest_restart.csv") {
-  if (!file.exists(path)) return(invisible(NULL))
-  h <- readr::read_csv(path, show_col_types = FALSE) |>
-    dplyr::mutate(x = ifelse(is.na(Mbar), -0.25, Mbar), kind = ifelse(is.na(Mbar), "Original", "Robust"),
-                  target = paste("PRODES", target_year))
-  p <- ggplot2::ggplot(h, ggplot2::aes(x, ymin = pct_effect(lb), ymax = pct_effect(ub), colour = kind)) +
-    ggplot2::geom_hline(yintercept = 0, colour = INK2, linewidth = 0.4) +
-    ggplot2::geom_vline(xintercept = 1, linetype = "dashed", colour = INK2, linewidth = 0.4) +
-    ggplot2::geom_linerange(linewidth = 1.2) +
-    ggplot2::facet_wrap(~target) +
-    ggplot2::scale_colour_manual(values = c(Original = INK, Robust = ACCENT), name = NULL) +
-    ggplot2::scale_x_continuous(breaks = c(-0.25, 0, 0.5, 1, 1.5, 2), labels = c("Orig.", "0", "0.5", "1", "1.5", "2")) +
-    ggplot2::labs(title = "How robust is the restart effect to violations of parallel trends?",
-                  subtitle = "95% CI for the effect of R$ 1 million (all contracts) when post-2022 trend deviations may be up to\nMbar times the largest pre-period change (Rambachan & Roth 2023); dashed line: Mbar = 1",
-                  x = "Mbar", y = "% change in deforestation") +
-    theme_report()
-  save_fig(p, "10_restart_sensitivity", height = 4.4)
-}
-
 fig_staggered <- function(staggered) {
   d <- staggered$dynamic
   e <- tibble::tibble(e = d$egt, pct = pct_effect(d$att.egt), lo = pct_effect(d$att.egt - 1.96 * d$se.egt),
@@ -210,6 +190,54 @@ fig_staggered <- function(staggered) {
                   x = "Years since first contract", y = "% difference in deforestation") +
     theme_report()
   save_fig(p, "05_first_project_event_study", height = 4.2)
+}
+
+# The same Callaway & Sant'Anna estimates before aggregation: one event study per cohort
+# (year of the first local project), same window as figure 05.
+fig_cohorts <- function(staggered, panel) {
+  att <- staggered$att
+  n <- dplyr::distinct(sample_of(panel), cd_mun, first_treat_year) |> dplyr::count(g = first_treat_year)
+  d <- tibble::tibble(g = att$group, e = att$t - att$group, est = att$att, se = att$se) |>
+    dplyr::filter(dplyr::between(e, -6, 8), !is.na(est)) |>
+    dplyr::left_join(n, by = "g") |>
+    dplyr::mutate(pct = pct_effect(est), lo = pct_effect(est - 1.96 * se), hi = pct_effect(est + 1.96 * se),
+                  post = ifelse(e >= 0, "After", "Before"))
+  labels <- dplyr::distinct(d, g, n) |> dplyr::arrange(g)
+  d$cohort <- factor(d$g, labels$g, sprintf("First project %d (n = %d)", labels$g, labels$n))
+  p <- ggplot2::ggplot(d, ggplot2::aes(e, pct, colour = post)) +
+    ggplot2::geom_hline(yintercept = 0, colour = INK2, linewidth = 0.4) +
+    ggplot2::geom_vline(xintercept = -0.5, linetype = "dashed", colour = INK2, linewidth = 0.4) +
+    ggplot2::geom_linerange(ggplot2::aes(ymin = lo, ymax = hi), linewidth = 0.6, alpha = 0.6) +
+    ggplot2::geom_point(size = 1.4) +
+    ggplot2::facet_wrap(~cohort, ncol = 4) +
+    ggplot2::scale_colour_manual(values = c(Before = "#a3a29c", After = ACCENT), guide = "none") +
+    ggplot2::scale_y_continuous(labels = scales::label_percent(scale = 1)) +
+    ggplot2::coord_cartesian(ylim = c(-100, 400)) +
+    ggplot2::labs(title = "First local project: event study by cohort",
+                  subtitle = "Deforestation relative to not-yet-treated municipalities, by years since the first local project,\nfor each year of first contract (Callaway & Sant'Anna 2021; 95% CI; y-axis cut at +400%)",
+                  x = "Years since first contract", y = "% difference in deforestation") +
+    theme_report()
+  save_fig(p, "10_first_project_by_cohort", width = 9, height = 9)
+}
+
+# Imputation estimator for the first local project (needs results/ife_event_study.csv).
+# Unlike figure 05, pre-period estimates compare each year with the municipality's whole
+# untreated path, so a trend that starts before the project shows up.
+fig_ife <- function(path = "results/ife_event_study.csv") {
+  if (!file.exists(path)) return(invisible(NULL))
+  d <- readr::read_csv(path, show_col_types = FALSE) |>
+    dplyr::filter(design == "first_project", outcome == "y", dplyr::between(e, -6, 8)) |>
+    dplyr::mutate(pct = pct_effect(att), lo = pct_effect(att - 1.96 * se), hi = pct_effect(att + 1.96 * se))
+  p <- ggplot2::ggplot(d, ggplot2::aes(e, pct)) +
+    ggplot2::geom_hline(yintercept = 0, colour = INK2, linewidth = 0.4) +
+    ggplot2::geom_vline(xintercept = -0.5, linetype = "dashed", colour = INK2, linewidth = 0.4) +
+    ggplot2::geom_linerange(ggplot2::aes(ymin = lo, ymax = hi), colour = ACCENT, linewidth = 0.8, alpha = 0.6) +
+    ggplot2::geom_point(colour = ACCENT, size = 2.2) +
+    ggplot2::labs(title = "Deforestation was already rising before the first local project",
+                  subtitle = "Gap to the imputed path without a project (municipality + year effects fitted on untreated years;\ncross-validation adds no interactive factors), by years since the first contract; 95% bootstrap CI",
+                  x = "Years since first contract", y = "% difference in deforestation") +
+    theme_report()
+  save_fig(p, "11_first_project_imputation", height = 4.2)
 }
 
 fig_robustness <- function(rob) {
@@ -244,8 +272,9 @@ report_all <- function(panel, models) {
   fig_restart(models)
   fig_trajectories(panel)
   fig_targeting(panel)
-  fig_honest()
   fig_staggered(models$staggered)
+  fig_cohorts(models$staggered, panel)
+  fig_ife()
   fig_event(es_frame(models$freeze), 2018L, "The 2019 freeze: no rise where Fund money dried up",
             "Effect of R$ 1 million/year of lost local Fund money, by year (relative to 2018; 95% CI)", "06_freeze_event_study")
   fig_robustness(models$robustness)
