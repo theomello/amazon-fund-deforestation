@@ -240,6 +240,30 @@ fig_ife <- function(path = "results/ife_event_study.csv") {
   save_fig(p, "11_first_project_imputation", height = 4.2)
 }
 
+# First local project by its objective (the Fund's eixo), imputation estimator.
+fig_objectives <- function(obj) {
+  labels <- c(production = "Sustainable production", monitoring = "Monitoring & control",
+              territorial = "Territorial planning", science = "Science & economic instruments")
+  s <- dplyr::mutate(obj$summary, label = sprintf("%s (n = %d; placebo p = %.3f)", labels[objective], n_treated, placebo_p))
+  d <- obj$event |>
+    dplyr::filter(dplyr::between(e, -6, 8)) |>
+    dplyr::left_join(dplyr::select(s, objective, label), by = "objective") |>
+    dplyr::mutate(label = factor(label, s$label), pct = pct_effect(att), lo = pct_effect(att - 1.96 * se),
+                  hi = pct_effect(att + 1.96 * se), post = ifelse(e >= 0, "After", "Before"))
+  p <- ggplot2::ggplot(d, ggplot2::aes(e, pct, colour = post)) +
+    ggplot2::geom_hline(yintercept = 0, colour = INK2, linewidth = 0.4) +
+    ggplot2::geom_vline(xintercept = -0.5, linetype = "dashed", colour = INK2, linewidth = 0.4) +
+    ggplot2::geom_linerange(ggplot2::aes(ymin = lo, ymax = hi), linewidth = 0.7, alpha = 0.6) +
+    ggplot2::geom_point(size = 1.8) +
+    ggplot2::facet_wrap(~label, ncol = 2) +
+    ggplot2::scale_colour_manual(values = c(Before = "#a3a29c", After = ACCENT), guide = "none") +
+    ggplot2::labs(title = "No type of local project was followed by less deforestation",
+                  subtitle = "Gap to the imputed path without a project, by objective of the municipality's first project\n(municipality + year effects fitted on untreated years; 95% bootstrap CI; placebo test on the 3 years before)",
+                  x = "Years since first contract", y = "% difference in deforestation") +
+    theme_report()
+  save_fig(p, "12_first_project_by_objective", width = 9, height = 6.4)
+}
+
 fig_robustness <- function(rob) {
   d <- dplyr::mutate(rob, spec = factor(spec, rev(spec)), lo = estimate - 1.96 * std.error, hi = estimate + 1.96 * std.error)
   p <- ggplot2::ggplot(d, ggplot2::aes(estimate, spec)) +
@@ -262,6 +286,12 @@ write_results <- function(models) {
                                        function(m) es_frame(models[[m]])), .id = "variant")
   readr::write_csv(restart, "results/restart_event_study.csv")
   readr::write_csv(es_frame(models$freeze), "results/freeze_event_study.csv")
+  o <- models$objectives
+  ct <- fixest::coeftable(o$dose)
+  dose <- tibble::tibble(objective = sub("^money_(.*)_lag1$", "\\1", rownames(ct)), dose_coef = ct[, 1], dose_se = ct[, 2],
+                         dose_p = ct[, 4])
+  readr::write_csv(dplyr::left_join(o$summary, dose, by = "objective"), "results/objectives.csv")
+  readr::write_csv(o$event, "results/objectives_event_study.csv")
   d <- models$staggered$dynamic
   readr::write_csv(tibble::tibble(e = d$egt, att = d$att.egt, se = d$se.egt), "results/first_project_event_study.csv")
 }
@@ -275,6 +305,7 @@ report_all <- function(panel, models) {
   fig_staggered(models$staggered)
   fig_cohorts(models$staggered, panel)
   fig_ife()
+  fig_objectives(models$objectives)
   fig_event(es_frame(models$freeze), 2018L, "The 2019 freeze: no rise where Fund money dried up",
             "Effect of R$ 1 million/year of lost local Fund money, by year (relative to 2018; 95% CI)", "06_freeze_event_study")
   fig_robustness(models$robustness)

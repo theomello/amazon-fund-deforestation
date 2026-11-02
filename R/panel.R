@@ -47,6 +47,10 @@ restart_exposures <- function(projects, links, ipca, mun_attr, cutoff = as.Date(
     dplyr::summarise(restart_exposure = sum(money_brl) / 1e6, .by = cd_mun)
 }
 
+# The Fund's own project classification (eixo), as short column suffixes.
+OBJECTIVES <- c("Produção sustentável" = "production", "Monitoramento e controle" = "monitoring",
+                "Ordenamento territorial" = "territorial", "Ciência, inovação e instrumentos econômicos" = "science")
+
 freeze_exposures <- function(money) {
   money |>
     dplyr::summarise(freeze_intensity = mean(money[year %in% 2016:2018]),
@@ -72,15 +76,23 @@ build_panel <- function() {
                                    restart_exposure_all = restart_exposure), by = "cd_mun") |>
     dplyr::full_join(dplyr::rename(restart_exposures(dplyr::filter(local_projects, slug != uniao), links, ipca, mun_attr),
                                    restart_exposure_no_uniao = restart_exposure), by = "cd_mun")
-  first <- dplyr::filter(projects, slug %in% local_slugs) |>
-    dplyr::inner_join(links, by = "slug") |>
-    dplyr::filter(!is.na(date_contract)) |>  # approved but not yet contracted: not treated yet
-    dplyr::summarise(first_treat_year = min(prodes_year(date_contract)), .by = cd_mun)
   years <- sort(unique(defor$year))
   grid_join <- function(d, col, by = c("cd_mun", "year")) {
     dplyr::left_join(tidyr::expand_grid(cd_mun = unique(defor$cd_mun), year = years), d, by = by) |>
       dplyr::mutate(dplyr::across(dplyr::all_of(col), ~ dplyr::coalesce(.x, 0)))
   }
+  # Objective of the first project: the earliest contract, the larger one on ties.
+  first <- dplyr::filter(projects, slug %in% local_slugs) |>
+    dplyr::inner_join(links, by = "slug") |>
+    dplyr::filter(!is.na(date_contract)) |>  # approved but not yet contracted: not treated yet
+    dplyr::arrange(date_contract, dplyr::desc(valor_apoio)) |>
+    dplyr::summarise(first_treat_year = min(prodes_year(date_contract)), first_objective = OBJECTIVES[eixos[1]], .by = cd_mun)
+  by_objective <- lapply(names(OBJECTIVES), function(e) {
+    col <- paste0("money_", OBJECTIVES[[e]])
+    d <- dplyr::filter(local_disb, slug %in% projects$slug[projects$eixos == e])
+    grid_join(dplyr::rename(allocate_money(d, links, ipca, mun_attr, "equal"), !!col := money_brl), col) |>
+      dplyr::mutate(!!col := .data[[col]] / 1e6)
+  })
   money <- grid_join(dplyr::rename(money_m("equal"), money = money_brl), "money")
   panel <- defor |>
     dplyr::left_join(money, by = c("cd_mun", "year")) |>
@@ -90,8 +102,10 @@ build_panel <- function() {
                                                                   dplyr::filter(projects, coverage_type == "state"), ipca, mun_attr),
                                              money_state = state_money_brl / 1e6, .keep = "unused"), "money_state"),
                      by = c("cd_mun", "year")) |>
+    dplyr::left_join(purrr::reduce(by_objective, dplyr::left_join, by = c("cd_mun", "year")), by = c("cd_mun", "year")) |>
     dplyr::arrange(cd_mun, year) |>
-    dplyr::mutate(money_lag1 = dplyr::lag(money, default = 0), money_lag2 = dplyr::lag(money, 2, default = 0),
+    dplyr::mutate(dplyr::across(paste0("money_", OBJECTIVES), ~ dplyr::lag(.x, default = 0), .names = "{.col}_lag1"),
+                  money_lag1 = dplyr::lag(money, default = 0), money_lag2 = dplyr::lag(money, 2, default = 0),
                   money_area_lag1 = dplyr::lag(money_area, default = 0),
                   money_forest_lag1 = dplyr::lag(money_forest, default = 0),
                   money_state_lag1 = dplyr::lag(money_state, default = 0), .by = cd_mun) |>
