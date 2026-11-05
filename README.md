@@ -4,7 +4,7 @@
 
 The [Amazon Fund](https://www.amazonfund.gov.br/en/home/) (Fundo Amazônia) is one of the largest results-based forest finance programmes. It has disbursed about R$ 2.9 billion since 2010, mostly donated by Norway and Germany and managed by Brazil's development bank BNDES. It was frozen in 2019, when the federal government dissolved its governance committees, and restarted in 2023. That makes the Fund a rare policy with both a long track record and two sharp, nationally imposed breaks.
 
-This started as my seminar paper in the second semester of my economics bachelor at LMU Munich (summer 2021). In 2026 I rebuilt it from scratch, with new data through 2026 and a design that uses the freeze and the restart.
+This started as my seminar paper in the second semester of my economics bachelor at LMU Munich. In 2026 I rebuilt it from scratch, with new data through 2026 and a design that uses the freeze and the restart.
 
 ## Main finding
 
