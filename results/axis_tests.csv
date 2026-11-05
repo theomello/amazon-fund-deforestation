@@ -1,0 +1,3 @@
+test,statistic,p.value,df1
+Equal dose-response across axes (joint model),1.2893329849643007,0.2728079668496209,4
+Equal pooled restart effect across axes (joint model),62.27884405505553,2.8788193364375874e-44,4

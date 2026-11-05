@@ -82,7 +82,7 @@ Requires R ≥ 4.5 with `tidyverse`, `fixest`, `did`, `sf`, `geobr`, `httr2`, `r
 - **RStudio:** open `amazon-fund-deforestation.Rproj` and source `run_all.R`.
 - **Terminal:** `Rscript run_all.R` from the repo root.
 
-The slow checks (HonestDiD bounds and synthetic DiD, ~15 min) only rerun with `SENSITIVITY <- TRUE`; their results are committed in `results/`. Raw downloads are cached in `data/raw/` (all committed except the 123 MB IBAMA file, which is downloaded on the first run), so later runs work offline; set `REFRESH <- TRUE` in `run_all.R` to fetch fresh data. Run the tests with `Rscript tests/testthat.R`.
+The slow checks (HonestDiD bounds and synthetic DiD, ~15 min) only rerun with `SENSITIVITY <- TRUE`; their results are committed in `results/`. Raw downloads are cached in `data/raw/` (all committed except the 123 MB IBAMA file and the 31 MB MapBiomas file, which are downloaded on the first run), so later runs work offline; set `REFRESH <- TRUE` in `run_all.R` to fetch fresh data. Run the tests with `Rscript tests/testthat.R`.
 
 | Folder | Contents |
 |---|---|
@@ -94,13 +94,18 @@ The slow checks (HonestDiD bounds and synthetic DiD, ~15 min) only rerun with `S
 ## What this can and cannot say
 
 - **It covers local projects only** (about 23 % of contracted support). Money is in prices of PRODES year 2025 (Aug 2024–Jul 2025). The effect of the Fund as a whole, including federal enforcement it financed, is absorbed by the year and state × year effects and can't be estimated this way.
-- **Missing controls.** There are no weather controls: free sources would have needed far more downloading than the state × year effects justify. PRODES doesn't publish cloud cover per municipality. The cattle price index starts in 2010, so it enters only as a robustness check.
-- **The blacklist after 2022 is carried forward** from the last list with a free, machine-readable source. The 2023 and 2024 lists (Portarias MMA 834/2023, 70 municipalities, and 1.202/2024, 81) are published in the Diário Oficial, but its site and gov.br block automated downloads. They matter: the 2023 list is the eligibility list of *União com Municípios*, so the restart estimates may still attribute some of the effect of being newly blacklisted to the money. Transcribing them into `data/manual/priority_lists.csv` (format in `R/priority.R`) is all that is needed; the panel picks them up. Blacklist status is lagged to the PRODES year: lists come out in Sep–Nov based on that year's PRODES figures, so a list counts from the next PRODES year (or the same one if published before August).
+- **Controls and outcomes added later** (details in `docs/mapb.md`, `docs/axis.md`, `docs/cloud.md`):
+  - *MapBiomas* (Collection 11) as an alternative outcome: the sign of the dose-response replicates but is smaller (about 0.035 to 0.044 against 0.049 for PRODES, all insignificant or borderline), and its pre-period is not flat, so it is not a clean confirmation of the restart result.
+  - *Project axis:* no axis lowers deforestation in the dose-response; the restart fall is carried year by year by production and, less clearly, science projects, each resting on 5 to 11 contracts. Restart exposure by axis has no signing cutoff, so it is not strictly fixed before the outcome.
+  - *Cloud and unobserved area:* INPE does not publish it per municipality (checked 5 Nov 2026). The PRODES residual layer (clearing first seen later) is used as a proxy control and sample restriction; it leaves the headline estimates unchanged. It ends in 2025, so it says nothing about 2026.
+  - *Clustering* (`results/micro_clustering.csv`): the restart fall for PRODES 2025 and 2026 stays significant with standard errors clustered by microregion (99 clusters, wild-bootstrap p about 0.01) and by state (9 clusters, wild p 0.04 to 0.07), but not when clustered by state x year (p = 0.10 and 0.13). The dose-response is insignificant under every choice; the pre-August-2024-contracts restart stays null except under state clustering, where it is borderline in 2024 and 2026 (wild p 0.05 and 0.10), so those state-level p-values are fragile (9 clusters).
+  - *Weather* is still not controlled, and the cattle price index starts in 2010, so it is a robustness check only.
+- **The blacklist after 2022 is carried forward** from the last list with a free, machine-readable source. The 2024 list (Portaria 1.202/2024, 81 municipalities) is now transcribed from the Diário Oficial print. The 2023 list (Portaria MMA 834/2023, 70 municipalities) and the 2026 list (Portaria 1.717/2026, 89) are still missing: the Diário Oficial site and gov.br block automated downloads, so 2023 inherits the 2022 list and 2026 the 2024 list. They matter: the 2023 list is the eligibility list of *União com Municípios*, so the restart estimates may still attribute some of the effect of being newly blacklisted to the money. Transcribing them into `data/manual/priority_lists.csv` (format in `R/priority.R`) is all that is needed; the panel picks them up. Blacklist status is lagged to the PRODES year: lists come out in Sep–Nov based on that year's PRODES figures, so a list counts from the next PRODES year (or the same one if published before August).
 - Two staggered-adoption cohorts (2013, 2017) are small.
 - **Provisional:** the manual coverage review awaits a spot-check.
 
 ## Next steps
 
-1. Add the official 2023/2024 priority-municipality lists, and re-estimate the restart once PRODES 2027 is out: the test of whether the União municipalities keep diverging.
+1. Add the official 2023 list (Portaria MMA 834, requested from the MMA under the LAI, protocol 02303.030201/2026-08, answer due 25 Nov 2026) and the 2026 list (Portaria GM/MMA 1.717/2026, 89 municipalities, probably applies to PRODES 2026). The 2024 list (Portaria 1.202, 81 municipalities) is already in `data/manual/priority_lists.csv`. Then re-estimate the restart once PRODES 2027 is out: the test of whether the União municipalities keep diverging.
 2. A shift-share instrument for Fund money (national donation inflows × predetermined local exposure).
 3. Possibly a new paper reporting the results.

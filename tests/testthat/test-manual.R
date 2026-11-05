@@ -19,7 +19,8 @@ test_that("priority list starts with the 36 municipalities of Portaria MMA 28/20
 test_that("priority status after the last published list is carried forward", {
   p <- in_repo(read_priority(years = 2008:2026))
   s <- function(y) p$priority[p$year == y][order(p$cd_mun[p$year == y])]
-  expect_equal(s(2026L), s(2023L))
+  expect_equal(s(2026L), s(2025L))
+  expect_equal(sum(s(2025L)), 81)  # Portaria GM/MMA 1.202/2024, from PRODES year 2025
   expect_false(anyDuplicated(p[c("cd_mun", "year")]) > 0)
 })
 

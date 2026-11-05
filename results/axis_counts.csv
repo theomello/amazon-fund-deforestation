@@ -1,0 +1,5 @@
+axis,eixo,projects_all,projects_local,support_all_brl_m,support_local_brl_m,disbursed_in_sample_brl_m,n_mun_dose,n_mun_restart,restart_brl_m,thin_dose,thin_restart
+production,Produção sustentável,43,21,1265.21209433,430.24759828000003,148.7104935634161,137,90,6469.474902785982,FALSE,FALSE
+monitoring,Monitoramento e controle,48,13,2614.95614165,333.05685927999997,236.88827308565325,91,74,4883.143799382242,FALSE,FALSE
+territorial,Ordenamento territorial,31,12,1078.3765915899999,227.59999875999998,128.45874457860108,60,70,2346.8485375737932,FALSE,FALSE
+science,"Ciência, inovação e instrumentos econômicos",34,14,1011.03651613,371.05184055,176.29482229505018,70,56,4771.6802930132435,FALSE,FALSE
