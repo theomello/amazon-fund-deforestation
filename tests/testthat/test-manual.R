@@ -19,6 +19,16 @@ test_that("priority list starts with the 36 municipalities of Portaria MMA 28/20
 test_that("priority status after the last published list is carried forward", {
   p <- in_repo(read_priority(years = 2008:2026))
   s <- function(y) p$priority[p$year == y][order(p$cd_mun[p$year == y])]
-  expect_equal(s(2026L), s(2022L))
+  expect_equal(s(2026L), s(2023L))
   expect_false(anyDuplicated(p[c("cd_mun", "year")]) > 0)
+})
+
+test_that("a list published late in a year counts from the next PRODES year", {
+  p <- in_repo(read_priority(years = 2008:2026))
+  raw <- in_repo(readr::read_csv("data/raw/priority/priority_list_zenodo_8412144.csv", col_types = readr::cols(.default = "c")))
+  listed_2021 <- raw$code_muni[raw$year == "2021" & raw$priority == "1"]
+  new_2022 <- setdiff(raw$code_muni[grepl("251 de 31/10/2022", raw$portaria) & raw$priority == "1"], listed_2021)  # Portaria MMA 251, 31 Oct 2022
+  expect_gt(length(new_2022), 0)
+  expect_true(all(p$priority[p$year == 2022L & p$cd_mun %in% new_2022] == 0))
+  expect_true(all(p$priority[p$year == 2023L & p$cd_mun %in% new_2022] == 1))
 })

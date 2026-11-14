@@ -78,3 +78,18 @@ test_that("interactive fixed effects remove a factor confounder that two-way FE 
   expect_gt(abs(fit_ife(sim, "y", "first_project", r = 0, CV = FALSE, se = FALSE)$att.avg + 0.2), 0.2)
   expect_equal(as.numeric(fit_ife(sim, "y", "first_project", r = c(0, 3), CV = TRUE, se = FALSE)$r.cv), 1)
 })
+
+test_that("the objective split recovers an effect of one objective only", {
+  sim <- simulate_panel()
+  for (o in OBJECTIVES) sim[[paste0("money_", o, "_lag1")]] <- rexp(nrow(sim)) * (sim$money_lag1 > 0)
+  sim$y <- sim$alpha + sim$delta - 0.1 * sim$money_monitoring_lag1 + rnorm(nrow(sim), sd = 0.3)
+  sim$first_objective <- ifelse(is.na(sim$first_treat_year), NA, rep(OBJECTIVES, length.out = nrow(sim)))
+  sim$first_objective <- stats::ave(sim$first_objective, sim$cd_mun, FUN = function(x) x[1])
+  sim$restart_exposure_all <- 0
+  sim$defor_km2 <- exp(sim$y)
+  o <- est_objectives(sim, nboots = 20)
+  b <- coef(o$dose)
+  expect_equal(unname(b["money_monitoring_lag1"]), -0.1, tolerance = 0.03, scale = 1)
+  expect_equal(unname(b["money_production_lag1"]), 0, tolerance = 0.03, scale = 1)
+  expect_setequal(o$summary$objective, unname(OBJECTIVES))
+})

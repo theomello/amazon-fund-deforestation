@@ -160,6 +160,29 @@ est_ife <- function(panel, rmax = 4, nboots = 200) {
   out
 }
 
+# Project objectives (the Fund's eixos). Dose-response: last year's money of each
+# objective side by side in the main specification. Event studies: imputation
+# estimator (no factors) for municipalities whose first project had that objective,
+# against never- and not-yet-treated municipalities, with a placebo test on the last
+# three pre-treatment years.
+est_objectives <- function(panel, nboots = 200) {
+  dose <- est_main(panel, paste(paste0("money_", OBJECTIVES, "_lag1"), collapse = " + "))
+  d <- ife_data(panel)
+  never <- is.na(d$first_treat_year) | d$first_treat_year > max(d$year)
+  runs <- lapply(OBJECTIVES, function(o) {
+    f <- fit_ife(d[never | d$first_objective %in% o, ], "y", "first_project", CV = FALSE, r = 0, se = TRUE, nboots = nboots)
+    pl <- fit_ife(d[never | d$first_objective %in% o, ], "y", "first_project", CV = FALSE, r = 0, se = TRUE,
+                  nboots = nboots, placeboTest = TRUE, placebo.period = c(-2, 0))
+    list(event = tibble::tibble(objective = o, e = as.integer(rownames(f$est.att)) - 1L, att = f$est.att[, "ATT"],
+                                se = f$est.att[, "S.E."], n = f$est.att[, "count"]),
+         summary = tibble::tibble(objective = o, att = f$est.avg[, "ATT.avg"], se = f$est.avg[, "S.E."],
+                                  placebo_att = pl$est.placebo[, "ATT.placebo"], placebo_p = pl$est.placebo[, "p.value"],
+                                  n_treated = f$Ntr))
+  })
+  list(dose = dose, wald_equal = fixest::wald(dose, paste0("money_", OBJECTIVES, "_lag1"), print = FALSE),
+       event = dplyr::bind_rows(lapply(runs, `[[`, "event")), summary = dplyr::bind_rows(lapply(runs, `[[`, "summary")))
+}
+
 # Mechanism: does Fund money bring more enforcement (IBAMA flora fines)?
 est_mechanism <- function(panel) {
   est_main(dplyr::mutate(panel, log_fines = log(fines_flora + 1)), outcome = "log_fines")
@@ -207,7 +230,7 @@ estimate_all <- function(panel) {
                  restart_all = est_exposure(panel, "restart_exposure_all", 2022L),
                  restart_no_uniao = est_exposure(panel, "restart_exposure_no_uniao", 2022L),
                  restart_asinh = est_exposure(dplyr::mutate(panel, restart_asinh = asinh(restart_exposure)), "restart_asinh", 2022L),
-                 robustness = est_robustness(panel))
+                 robustness = est_robustness(panel), objectives = est_objectives(panel))
   saveRDS(models, "output/models/models.rds")
   models
 }
