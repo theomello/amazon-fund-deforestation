@@ -94,6 +94,7 @@ The slow checks (HonestDiD bounds and synthetic DiD, ~15 min) only rerun with `S
 ## What this can and cannot say
 
 - **It covers local projects only** (about 23 % of contracted support). Money is in prices of PRODES year 2025 (Aug 2024–Jul 2025). The effect of the Fund as a whole, including federal enforcement it financed, is absorbed by the year and state × year effects and can't be estimated this way.
+- **How many independent shocks?** The freeze and restart designs rest on about three national regimes (effective number of shocks: 10 over 2010–26, 4 after 2018), and placebo breaks at 2013–2023 give estimates as large as the 2019 one, so a shift-share instrument would not add identifying power (`docs/shocks.md`).
 - **Controls and outcomes added later** (details in `docs/mapb.md`, `docs/axis.md`, `docs/cloud.md`):
   - *MapBiomas* (Collection 11) as an alternative outcome: the sign of the dose-response replicates but is smaller (about 0.035 to 0.044 against 0.049 for PRODES, all insignificant or borderline), and its pre-period is not flat, so it is not a clean confirmation of the restart result.
   - *Project axis:* no axis lowers deforestation in the dose-response; the restart fall is carried year by year by production and, less clearly, science projects, each resting on 5 to 11 contracts. Restart exposure by axis has no signing cutoff, so it is not strictly fixed before the outcome.
@@ -107,5 +108,5 @@ The slow checks (HonestDiD bounds and synthetic DiD, ~15 min) only rerun with `S
 ## Next steps
 
 1. Confirm the exact publication date of Portaria GM/MMA 1.717/2026 (entered as 2026-06-19). Then re-estimate the restart once PRODES 2027 is out: the test of whether the União municipalities keep diverging.
-2. A shift-share instrument for Fund money (national donation inflows × predetermined local exposure).
+2. A shift-share instrument for Fund money was checked and dropped: too few independent shocks (`docs/shocks.md`). A fuzzy RD on the priority-list threshold was also dropped (about 20 municipalities near the cutoff, listing mixes in other treatments).
 3. Possibly a new paper reporting the results.

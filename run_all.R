@@ -15,6 +15,7 @@ models <- estimate_all(panel)
 est_mapb(panel, build_mapbiomas(REFRESH))  # alternative outcome: MapBiomas deforestation
 est_axis(panel)                            # heterogeneity by Fund project axis
 est_cloud(panel)                           # PRODES residual (earlier-unobserved) area as control
+write_shocks(panel)                        # effective number of national shocks; placebo break years
 if (SENSITIVITY) {
   honest_restart(models)
   synthdid_uniao(panel)
