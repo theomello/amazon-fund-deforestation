@@ -1,0 +1,21 @@
+spec,axis,term,estimate,std.error,p.value,n
+"Dose-response, all local money (headline)",all,money_lag1,0.04956153992721168,0.034294912966902,0.1489173382491415,11837
+"Dose-response, one axis at a time",production,money_production_lag1,-0.046231520068146945,0.16117945440836284,0.774336029624014,11837
+"Dose-response, one axis at a time",monitoring,money_monitoring_lag1,-0.002596059838933659,0.046730787164247306,0.9557153303731559,11837
+"Dose-response, one axis at a time",territorial,money_territorial_lag1,0.10254917016326918,0.057519438016438995,0.07509650845057889,11837
+"Dose-response, one axis at a time",science,money_science_lag1,0.12689594061345394,0.0902206714190067,0.16007324786440322,11837
+"Dose-response, horse race (all axes jointly)",production,money_production_lag1,-0.04296713658854332,0.15900156144573202,0.7870722509944783,11837
+"Dose-response, horse race (all axes jointly)",monitoring,money_monitoring_lag1,-0.0012883064539042574,0.04777431480504106,0.9784950962374908,11837
+"Dose-response, horse race (all axes jointly)",territorial,money_territorial_lag1,0.10232838694987859,0.05757145752044309,0.0759885012713207,11837
+"Dose-response, horse race (all axes jointly)",science,money_science_lag1,0.12458686836507,0.08901158639080302,0.16211062444393007,11837
+"Restart pooled 2023-26, all axes (headline exposure)",all,restart_exposure_all_post,-0.01921439693387354,0.01282946815398621,0.13472452308709784,11837
+"Restart pooled 2023-26, one axis at a time",production,restart_production_post,-0.034066094822693675,0.02273115571269418,0.13447123217171994,11837
+"Restart pooled 2023-26, one axis at a time",monitoring,restart_monitoring_post,0.0684523514634301,0.03907078199376351,0.08026507798794037,11837
+"Restart pooled 2023-26, one axis at a time",territorial,restart_territorial_post,-0.04029908781202241,0.002642802202931846,7.740816392996081e-45,11837
+"Restart pooled 2023-26, one axis at a time",science,restart_science_post,0.013019522124927213,0.025667386269748856,0.6121662986899024,11837
+"Restart pooled 2023-26, horse race",production,restart_production_post,-0.0406854262352564,0.021793895266516004,0.06239604127338481,11837
+"Restart pooled 2023-26, horse race",monitoring,restart_monitoring_post,0.07574842057036593,0.03954922420049037,0.05591319355228708,11837
+"Restart pooled 2023-26, horse race",territorial,restart_territorial_post,-0.0400443616691322,0.0026218407587275568,5.873554539648172e-45,11837
+"Restart pooled 2023-26, horse race",science,restart_science_post,0.015588985561192498,0.025822114380844967,0.5462587024872264,11837
+"Restart pooled 2023-26, one axis at a time, without the largest-exposure municipality",territorial,restart_territorial_post,-0.04608413251342676,0.0628961167732064,0.46401645250184265,11818
+"Restart pooled 2023-26, horse race, without the largest-exposure municipality",territorial,restart_territorial_post,-0.05749106524392136,0.06172846733036214,0.3520323184935661,11818

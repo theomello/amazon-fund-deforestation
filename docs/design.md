@@ -244,7 +244,7 @@ docs/
 
 Deviations from this design, decided during the build (details in the plan ledger and `docs/manual_review.md`):
 - Indigenous-land polygons come from INPE's PRODES dashboard; FUNAI's download returns HTTP 403.
-- The priority list for 2008–2022 comes from Seixas (Zenodo 8412144). 2023–2026 is carried forward from 2022 because the 2023/2024 annexes are paywalled.
-- Not available or skipped: PRODES cloud/unobserved area per municipality, weather controls (owner's decision), MapBiomas robustness, heterogeneity by project axis, microregion clustering (state × year is used instead).
+- The priority list for 2008–2022 comes from Seixas (Zenodo 8412144). 2023, 2024 and 2026 come from the Portaria 834/2023, 1.202/2024 and 1.717/2026 annexes (`data/manual/priority_lists.csv`); 2025 carries 2024 forward.
+- Not available or skipped: weather controls (owner's decision). (Since built, see `docs/mapb.md`, `docs/axis.md`, `docs/micro.md`, `docs/cloud.md`: MapBiomas robustness, heterogeneity by project axis, microregion clustering, and a PRODES residual proxy for cloud, since INPE publishes no per-municipality cloud area.)
 - The cattle price index uses FRED's global beef price, which only starts in 2010, so it enters robustness checks only.
 - Figures and results are committed to `figures/` and `results/` (not `output/`), so they show on GitHub.

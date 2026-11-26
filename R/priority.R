@@ -1,9 +1,11 @@
 # Priority-municipality blacklist (municípios prioritários), 2008-2022, from the
 # compilation of MMA portarias by Seixas (Zenodo, doi:10.5281/zenodo.8412144, MIT).
-# Later lists (Portarias MMA 834/2023 and 1.202/2024) are not freely published in
-# machine-readable form; hand-transcribe them into data/manual/priority_lists.csv
-# (cd_mun, name_muni, uf, list_year, portaria, portaria_date, source_url). The last
-# available list is carried forward.
+# Later lists are transcribed by hand into data/manual/priority_lists.csv (cd_mun,
+# name_muni, uf, list_year, portaria, portaria_date, source_url): Portaria MMA 834/2023
+# (70) and Portaria GM/MMA 1.717/2026 (80) from the MMA's LAI Anexo
+# (data/manual/anexo_portarias_834_2023_1717_2026.xlsx), 1.202/2024 (81) from the DOU
+# print. The 1.717 date is approximate (June 2026). A year without a list inherits the
+# previous year's.
 #
 # Timing: Seixas codes each list by the calendar year of its portaria, but most lists
 # come out in Sep-Nov and are based on that year's PRODES figures. A municipality
@@ -25,9 +27,11 @@ read_priority <- function(years = 2008:2026, refresh = FALSE) {
       dplyr::transmute(cd_mun, list_year = as.integer(list_year), added = as.Date(portaria_date))
     listed <- dplyr::bind_rows(dplyr::filter(listed, !list_year %in% manual$list_year), manual)
   }
-  last <- max(listed$list_year)
-  carried <- tidyr::expand_grid(cd_mun = listed$cd_mun[listed$list_year == last], list_year = (last + 1L):max(years))
-  listed <- dplyr::bind_rows(listed, carried)
+  # A year without a list inherits the previous year's list (also after the last one).
+  for (y in (min(listed$list_year) + 1L):max(years))
+    if (!y %in% listed$list_year)
+      listed <- dplyr::bind_rows(listed, tibble::tibble(
+        cd_mun = listed$cd_mun[listed$list_year == y - 1L], list_year = y))
   status <- function(t) {
     early <- listed$list_year == t & !is.na(listed$added) & listed$added < as.Date(sprintf("%d-08-01", t))
     unique(listed$cd_mun[listed$list_year == t - 1L | early])
