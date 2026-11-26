@@ -16,6 +16,7 @@ est_mapb(panel, build_mapbiomas(REFRESH))  # alternative outcome: MapBiomas defo
 est_axis(panel)                            # heterogeneity by Fund project axis
 est_cloud(panel)                           # PRODES residual (earlier-unobserved) area as control
 monthly <- build_monthly(panel)                # municipality x month: DETER, enforcement, cloud, Fund money
+write_timing(monthly)                      # contract-date event studies on DETER alerts
 write_shocks(panel)                        # effective number of national shocks; placebo break years
 if (SENSITIVITY) {
   honest_restart(models)
