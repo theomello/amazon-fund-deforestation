@@ -32,7 +32,7 @@ Level agreement is high where it should be: the correlation of PRODES and MapBio
 
 | Outcome | Estimate | s.e. |
 |---|---|---|
-| PRODES, full headline sample 2008-2026 | 0.0485 | 0.0345 |
+| PRODES, full headline sample 2008-2026 | 0.0496 | 0.0343 |
 | PRODES, 2008-2025 | 0.0726 | 0.0326 |
 | MapBiomas primary forest loss | 0.0354 | 0.0217 |
 | MapBiomas primary vegetation loss, any class | 0.0442 | 0.0220 |

@@ -1,9 +1,11 @@
 # Priority-municipality blacklist (municípios prioritários), 2008-2022, from the
 # compilation of MMA portarias by Seixas (Zenodo, doi:10.5281/zenodo.8412144, MIT).
 # Later lists are transcribed by hand into data/manual/priority_lists.csv (cd_mun,
-# name_muni, uf, list_year, portaria, portaria_date, source_url): Portaria GM/MMA
-# 1.202/2024 (Anexo I, 81 municipalities, from the DOU print) is in; Portaria MMA
-# 834/2023 (70) is still missing. A year without a list inherits the previous year's.
+# name_muni, uf, list_year, portaria, portaria_date, source_url): Portaria MMA 834/2023
+# (70) and Portaria GM/MMA 1.717/2026 (80) from the MMA's LAI Anexo
+# (data/manual/anexo_portarias_834_2023_1717_2026.xlsx), 1.202/2024 (81) from the DOU
+# print. The 1.717 date is approximate (June 2026). A year without a list inherits the
+# previous year's.
 #
 # Timing: Seixas codes each list by the calendar year of its portaria, but most lists
 # come out in Sep-Nov and are based on that year's PRODES figures. A municipality
