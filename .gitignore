@@ -13,3 +13,7 @@ data/raw/**/*.nc
 # Reference papers (copyrighted PDFs)
 interactiveFE/
 data/raw/mapbiomas/
+# Monthly-panel downloads (DETER pages, IBAMA embargoes, NASA POWER cloud) are re-fetched by build_monthly()
+data/raw/deter/
+data/raw/ibama_embargo/
+data/raw/cloud_power/
