@@ -16,15 +16,18 @@ mun_attributes <- function() {
 # Split each disbursement across the project's municipalities. `weight` is 1 for
 # named municipalities and the overlap share for indigenous lands; `method` scales
 # it by nothing (equal), municipal area or baseline forest.
-allocate_money <- function(disbursements, links, ipca, mun_attr, method = c("equal", "area", "forest")) {
+allocate_money <- function(disbursements, links, ipca, mun_attr, method = c("equal", "area", "forest"),
+                           period = c("year", "month")) {
   method <- match.arg(method)
+  period <- match.arg(period)
   scale <- switch(method, equal = 1, area = mun_attr$area_km2, forest = mun_attr$forest_km2)
   shares <- links |>
     dplyr::left_join(tibble::tibble(cd_mun = mun_attr$cd_mun, scale = scale), by = "cd_mun") |>
     dplyr::mutate(w = weight * dplyr::coalesce(scale, 0), share = w / sum(w), .by = slug)
   dplyr::inner_join(disbursements, shares, by = "slug", relationship = "many-to-many") |>
-    dplyr::mutate(year = prodes_year(date), money_brl = deflate_to_2025(value_brl * share, year, ipca)) |>
-    dplyr::summarise(money_brl = sum(money_brl), .by = c(cd_mun, year))
+    dplyr::mutate(year = prodes_year(date), month = as.Date(format(date, "%Y-%m-01")),
+                  money_brl = deflate_to_2025(value_brl * share, year, ipca)) |>
+    dplyr::summarise(money_brl = sum(money_brl), .by = dplyr::all_of(c("cd_mun", if (period == "year") "year" else "month")))
 }
 
 # State-level projects spread over their states' municipalities by baseline forest
